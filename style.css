@@ -1,0 +1,351 @@
+:root {
+    --g: #1b7f4b;
+    --g2: #0f5c35;
+    --l: #e8f5ee;
+    --w: #fff;
+    --t: #17342a;
+    --r: #c0392b;
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    font-family: Segoe UI, Nyala, sans-serif;
+    background: linear-gradient(135deg, #e8f5ee, #fff);
+    color: var(--t);
+}
+#login {
+    width: min(96vw, 460px);
+    margin: 6vh auto;
+    background: var(--w);
+    padding: 26px 22px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px #1b7f4b33;
+    border-top: 6px solid var(--g);
+}
+h1, h2 {
+    color: var(--g2);
+    margin: 0 0 12px;
+}
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #b9dcc8;
+    border-radius: 8px;
+    font-size: 14px;
+}
+button {
+    background: var(--g);
+    color: #fff;
+    border: 0;
+    cursor: pointer;
+    font-weight: 600;
+}
+button {
+    transition: all .2s ease;
+}
+button:hover {
+    background: linear-gradient(135deg, #0f5c35, #2ecc71);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px #1b7f4b66;
+}
+button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+button.d {
+    background: var(--r);
+}
+button.s {
+    width: auto;
+    padding: 5px 10px;
+    margin: 1px;
+}
+header {
+    background: var(--g);
+    color: #fff;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+header button {
+    width: auto;
+    background: #fff;
+    color: var(--g2);
+}
+nav {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    overflow-x: auto;
+    background: var(--l);
+}
+nav button {
+    width: auto;
+    white-space: nowrap;
+    background: var(--w);
+    color: var(--g2);
+    border: 1px solid var(--g);
+}
+nav button.on {
+    background: var(--g);
+    color: #fff;
+}
+main {
+    padding: 14px;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+.card {
+    background: var(--w);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 10px #1b7f4b22;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+.wrap {
+    overflow-x: auto;
+    margin-top: 8px;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+}
+th {
+    background: var(--g);
+    color: #fff;
+}
+th.fl {
+    background: var(--l);
+    padding: 3px;
+}
+th.fl select {
+    margin: 0;
+    padding: 3px;
+    font-size: 12px;
+    min-width: 70px;
+}
+th, td {
+    padding: 7px;
+    border-bottom: 1px solid #d5eadd;
+    text-align: left;
+    white-space: nowrap;
+}
+tfoot td {
+    font-weight: 700;
+    background: var(--l);
+}
+.kpi {
+    background: var(--l);
+    border-left: 5px solid var(--g);
+    padding: 10px;
+    border-radius: 8px;
+}
+.kpi b {
+    font-size: 18px;
+    display: block;
+}
+.bad {
+    color: var(--r);
+    font-weight: 700;
+}
+.hide {
+    display: none;
+}
+label {
+    font-size: 12px;
+    color: #456;
+}
+.xbtn {
+    width: auto;
+    background: #fff;
+    color: var(--g2);
+    border: 1px solid var(--g);
+    padding: 4px 10px;
+}
+.brand {
+    text-align: center;
+    margin-bottom: 12px;
+}
+.brand img {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 6px;
+}
+.brand h1 {
+    font-size: 30px;
+    letter-spacing: 4px;
+    margin: 0;
+}
+.brand p {
+    margin: 2px 0 0;
+    color: #5b7a6a;
+}
+.hb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.hb img {
+    height: 38px;
+    width: 38px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 8px;
+    padding: 2px;
+}
+.lk {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+button.bl {
+    flex: 1;
+    width: auto;
+    background: #d6ebff;
+    color: #0b4f8a;
+    border: 1px solid #a9d1f7;
+    padding: 10px 6px;
+    font-size: 13px;
+}
+button.bl:hover {
+    background: linear-gradient(135deg, #2d8fe5, #6cc3ff);
+    color: #fff;
+    box-shadow: 0 6px 14px #2d8fe566;
+}
+nav button:hover {
+    color: #fff;
+}
+button.xbtn:hover {
+    color: #fff;
+}
+
+@media(min-width:1024px) {
+    body {
+        font-size: 15px;
+    }
+    #login {
+        width: 540px;
+        margin: 8vh auto;
+    }
+    .brand img {
+        width: 120px;
+        height: 120px;
+    }
+    table {
+        font-size: 14px;
+    }
+    header {
+        padding: 12px 32px;
+    }
+    nav {
+        padding: 12px 32px;
+    }
+    main {
+        padding: 22px 32px;
+    }
+    .card {
+        padding: 20px;
+    }
+}
+
+@media(max-width:600px) {
+    main {
+        padding: 8px;
+    }
+    .card {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    h2 {
+        font-size: 18px;
+    }
+    header {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    header span#who {
+        font-size: 12px;
+    }
+    input, select {
+        font-size: 16px;
+    }
+    table {
+        font-size: 12px;
+    }
+    th, td {
+        padding: 5px;
+    }
+    .grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    nav {
+        padding: 8px 6px;
+    }
+    nav button {
+        padding: 8px 10px;
+    }
+    #login {
+        padding: 22px 16px;
+    }
+}
+
+@media(max-width:360px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+.ld {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--g2);
+    margin: 4px 0;
+}
+.sp {
+    width: 16px;
+    height: 16px;
+    border: 3px solid #cfe8da;
+    border-top-color: var(--g);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex: none;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+button:disabled {
+    opacity: .65;
+    cursor: wait;
+    transform: none!important;
+    box-shadow: none!important;
+}
+header .ld {
+    color: #fff;
+}
+header .sp {
+    border-color: #ffffff55;
+    border-top-color: #fff;
+}
+
+@media print {
+    header, nav, button, .fl {
+        display: none!important;
+    }
+}
