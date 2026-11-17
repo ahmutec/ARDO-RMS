@@ -569,7 +569,7 @@
     function render() {
         const tabs = [['tenants', 'Tenants'], ['pay', 'Payments'], ['debt', 'Debts'], ['report', 'Report']];
         if (SA()) {
-            tabs.push(['users', 'Roles'], ['set', 'Settings']);
+            tabs.push(['users', 'Users'], ['set', 'Settings']);
         }
         $('nav').innerHTML = tabs.map(t => `<button class="${t[0] == tab ? 'on' : ''}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join('');
         $('main').innerHTML = ({ tenants: vTenants, pay: vPay, debt: vDebt, report: vReport, users: vUsers, set: vSet })[tab]();
@@ -745,7 +745,7 @@
     function vUsers() {
         const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['role', 'Role', '', ['Admin', 'Super Admin']], ['code', 'Code'], ['email', 'Email'], ['status', 'Status', '', ['Active', 'Pending']], ['perms', 'Permissions']];
         const data = D.Users.map(u => ({ ...u, status: u.status || 'Active' }));
-        return `<div class="card"><h2>Roles (Staff)</h2><button onclick="uForm()">+ New Staff</button><div id="form"></div>${tbl('users', cols, data, r => `<button class="s" onclick="uForm('${r.id}')">Edit</button><button class="s d" onclick="rm('u','${r.id}')">Del</button>`)}</div>`;
+        return `<div class="card"><h2>Users (Staff)</h2><button onclick="uForm()">+ New Staff</button><div id="form"></div>${tbl('users', cols, data, r => `<button class="s" onclick="uForm('${r.id}')">Edit</button><button class="s d" onclick="rm('u','${r.id}')">Del</button>`)}</div>`;
     }
     function uForm(id) {
         const u = D.Users.find(x => x.id == id) || {};
