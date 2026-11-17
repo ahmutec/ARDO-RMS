@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ARDO Rent Management</title>
+    <title>ARDO Rent Management System</title>
     <style>
         :root {
             --g: #1b7f4b;
@@ -358,6 +358,42 @@
             }
         }
 
+
+        nav.sub { background: transparent; padding: 0 0 12px; }
+        nav.sub button { border-radius: 20px; padding: 8px 16px; }
+        .bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .bar h2 { margin: 0; }
+        button.pbtn { width: auto; padding: 8px 16px; margin: 0; }
+        .ph { display: none; }
+        .form h2 { font-size: 22px; margin-bottom: 4px; }
+        .sec { color: var(--g2); font-size: 15px; margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--l); }
+        .fg { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 18px; }
+        .fg > div > label { display: block; font-weight: 600; font-size: 13px; color: var(--g2); margin-bottom: 4px; }
+        .form input, .form select { margin: 0; padding: 11px 12px; background: #fafdfb; border: 1.5px solid #b9dcc8; border-radius: 10px; transition: border-color .2s, box-shadow .2s; }
+        .form input:focus, .form select:focus { outline: 0; background: #fff; border-color: var(--g); box-shadow: 0 0 0 3px #1b7f4b26; }
+        .form input[readonly] { background: var(--l); color: var(--g2); font-weight: 700; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .actions button { width: auto; min-width: 150px; padding: 11px 22px; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+        .chip input, .perm input { display: none; }
+        .chip span { display: inline-block; padding: 8px 16px; border: 1.5px solid var(--g); border-radius: 20px; font-size: 13px; color: var(--g2); background: #fff; cursor: pointer; user-select: none; transition: all .15s; }
+        .chip input:checked + span { background: var(--g); color: #fff; box-shadow: 0 3px 8px #1b7f4b44; }
+        .msum { font-size: 13px; color: var(--g2); background: var(--l); padding: 8px 12px; border-radius: 8px; margin: 6px 0 12px; }
+        .perms { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .pbox { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 16px 10px; background: #fff; border: 2px solid #cfe8da; border-radius: 14px; cursor: pointer; transition: all .2s; }
+        .pbox i { font-style: normal; font-size: 28px; }
+        .pbox small { color: #5b7a6a; font-size: 11px; }
+        .pbox::after { content: 'Not allowed'; font-size: 11px; color: #9ab; }
+        .perm input:checked + .pbox { background: linear-gradient(135deg, #e8f5ee, #d3f0e0); border-color: var(--g); box-shadow: 0 6px 14px #1b7f4b33; transform: translateY(-2px); }
+        .perm input:checked + .pbox::after { content: '✔ Allowed'; color: var(--g); font-weight: 700; }
+        .rchip { display: inline-flex; align-items: center; padding: 7px 14px; background: var(--l); border: 1.5px solid var(--g); border-radius: 20px; color: var(--g2); font-weight: 600; font-size: 13px; }
+        .rchip a { margin-left: 8px; color: var(--r); font-weight: 700; cursor: pointer; }
+        .hint { font-size: 12px; color: #5b7a6a; }
+        .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 9; padding: 10px 22px; background: var(--g2); color: #fff; border-radius: 22px; box-shadow: 0 6px 16px #0006; }
+        @media print {
+            .ph { display: block; margin-bottom: 8px; }
+            .act, .bar button { display: none !important; }
+        }
     </style>
 </head>
 
@@ -387,7 +423,7 @@
         <header>
             <span class="hb">
                 <img class="lg-img" alt="ARDO">
-                <b>ARDO Rent Management</b>
+                <b>ARDO Rent Management System</b>
             </span>
             <span id="who"></span>
             <button onclick="doLogout()">Logout</button>
@@ -566,14 +602,6 @@
         D = await run('getAll', T);
         render();
     }
-    function render() {
-        const tabs = [['tenants', 'Tenants'], ['pay', 'Payments'], ['debt', 'Debts'], ['report', 'Report']];
-        if (SA()) {
-            tabs.push(['users', 'Users'], ['set', 'Settings']);
-        }
-        $('nav').innerHTML = tabs.map(t => `<button class="${t[0] == tab ? 'on' : ''}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join('');
-        $('main').innerHTML = ({ tenants: vTenants, pay: vPay, debt: vDebt, report: vReport, users: vUsers, set: vSet })[tab]();
-    }
     // ---- table with a filter dropdown under EVERY header ----
     // cols: [key,label,cssClass?,fixedFilterOptions?]
     function flt(id, cols, data) {
@@ -587,15 +615,14 @@
     function tbl(id, cols, data, act, foot) {
         const f = FL[id] || {};
         const sh = flt(id, cols, data);
-        const th = cols.map(c => `<th>${c[1]}</th>`).join('') + (act ? '<th></th>' : '');
+        const th = cols.map(c => `<th>${c[1]}</th>`).join('') + (act ? '<th class="act"></th>' : '');
         const fr = cols.map(c => {
             const u = c[3] || [...new Set(data.map(r => String(r[c[0]] ?? '')))].filter(x => x !== '').sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
             return `<th class="fl"><select onchange="setF('${id}','${c[0]}',this.value)"><option value="">all</option>${u.map(x => `<option value="${esc(x)}" ${f[c[0]] === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></th>`;
         }).join('')
             + (act ? `<th class="fl"><button class="xbtn" onclick="FL['${id}']={};render()">✕</button></th>` : '');
-        return `<div class="wrap"><table><tr>${th}</tr><tr>${fr}</tr>${sh.map(r => `<tr>${cols.map(c => `<td class="${c[2] || ''}">${esc(r[c[0]])}</td>`).join('')}${act ? `<td>${act(r)}</td>` : ''}</tr>`).join('')}${foot ? `<tfoot>${foot(sh)}</tfoot>` : ''}</table></div>`;
+        return `<div class="wrap"><table><tr>${th}</tr><tr>${fr}</tr>${sh.map(r => `<tr>${cols.map(c => `<td class="${c[2] || ''}">${esc(r[c[0]])}</td>`).join('')}${act ? `<td class="act">${act(r)}</td>` : ''}</tr>`).join('')}${foot ? `<tfoot>${foot(sh)}</tfoot>` : ''}</table></div>`;
     }
-    const btns = (tb, id) => (can('edit') ? `<button class="s" onclick="${tb}Form('${id}')">Edit</button>` : '') + (can('delete') ? `<button class="s d" onclick="rm('${tb}','${id}')">Del</button>` : '');
     const TBL = { t: 'Tenants', p: 'Payments', u: 'Users' };
     async function rm(k, id) {
         if (confirm('Delete this record?')) {
@@ -625,80 +652,224 @@
         }
         return S('penaltyType') == 'fixed' ? N(S('penaltyValue')) : total * N(S('penaltyValue')) / 100 * late;
     }
-    function field(id, l, v = '', type = 'text', opts, ro) {
-        return `<div><label>${l}</label>` + (opts ? `<select id="${id}">${opts.map(o => `<option ${o == v ? 'selected' : ''}>${o}</option>`)}</select>` : `<input id="${id}" type="${type}" value="${esc(v)}" ${ro ? 'readonly' : ''}>`) + '</div>';
-    }
     const val = id => $(id).value;
     const GEN = ['Male', 'Female', 'Other'];
     const CON = ['Contract', 'Non-contract'];
-    const MON = [...Array(12)].map((_, i) => String(i + 1));
-    // ---- Tenants ----
-    function vTenants() {
-        const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['phone', 'Phone'], ['reason', 'Reason'], ['area', 'Area (m²)'], ['pricePerSqm', 'Price/m²'], ['monthly', 'Monthly Rent'], ['startDate', 'Rent Start'], ['endDate', 'Rent End'], ['contract', 'Agreement', '', CON], ['debtMonths', 'Prev. Debt Months'], ['debtPaid', 'Prev. Debt Paid']];
-        const data = D.Tenants.map(t => ({ ...t, monthly: fmt(t.monthly), startDate: dt(t.startDate), endDate: dt(t.endDate) }));
-        return `<div class="card"><h2>Tenant Registration</h2>${can('add') ? `<button onclick="tForm()">+ New Tenant</button>` : ''}<div id="form"></div>${tbl('tenants', cols, data, r => btns('t', r.id))}</div>`;
+    // ---- Navigation: main tabs + sub tabs ----
+    const SUB = { tenants: 'reg', users: 'reg' };
+    const EDIT = { t: null, p: null, u: null };
+    const SUBS = {
+        tenants: [['reg', 'Register Tenant'], ['list', 'Tenants List'], ['preg', 'Register Payment'], ['plist', 'Payments List'], ['debt', 'Debts']],
+        users: [['reg', 'Register User'], ['list', 'Users List']]
+    };
+    const VIEWS = {
+        tenants: { reg: vTenantForm, list: vTenantList, preg: vPayForm, plist: vPayList, debt: vDebt },
+        users: { reg: vUserForm, list: vUserList },
+        report: { main: vReport },
+        set: { main: vSet }
+    };
+    const clearEdit = () => { EDIT.t = EDIT.p = EDIT.u = null; };
+    function render() {
+        const tabs = [['tenants', 'Tenants']];
+        if (SA()) tabs.push(['users', 'Users']);
+        tabs.push(['report', 'Report']);
+        if (SA()) tabs.push(['set', 'Settings']);
+        if (!tabs.some(t => t[0] == tab)) tab = 'tenants';
+        $('nav').innerHTML = tabs.map(t => `<button class="${t[0] == tab ? 'on' : ''}" onclick="tab='${t[0]}';clearEdit();render()">${t[1]}</button>`).join('');
+        const subs = (SUBS[tab] || []).filter(s => can('add') || can('edit') || !['reg', 'preg'].includes(s[0]));
+        if (subs.length && !subs.some(s => s[0] == SUB[tab])) SUB[tab] = subs[0][0];
+        const sub = subs.length
+            ? `<nav class="sub">${subs.map(s => `<button class="${s[0] == SUB[tab] ? 'on' : ''}" onclick="clearEdit();SUB.${tab}='${s[0]}';render()">${s[1]}</button>`).join('')}</nav>`
+            : '';
+        $('main').innerHTML = sub + VIEWS[tab][SUB[tab] || 'main']();
+        if (tab == 'tenants' && SUB.tenants == 'preg' && !EDIT.p) pCalc();
     }
-    function tForm(id) {
-        const t = D.Tenants.find(x => x.id == id) || {};
-        $('form').innerHTML = `<div class="card"><div class="grid">${field('f_name', 'Full Name', t.name)}${field('f_gender', 'Gender', t.gender, '', GEN)}${field('f_phone', 'Phone', t.phone)}${field('f_reason', 'Reason for Renting', t.reason)}
-      ${field('f_area', 'Area (m²)', t.area, 'number')}${field('f_pps', 'Price per m²', t.pricePerSqm, 'number')}${dfield('f_start', 'Rent Start Date', t.startDate)}${dfield('f_end', 'Contract End Date', t.endDate)}
-      ${field('f_contract', 'Agreement', t.contract, '', CON)}${field('f_dm', 'Previous Debt (months)', t.debtMonths || 0, 'number')}${field('f_dp', 'Prev. Debt Paid', t.debtPaid || 0, 'number')}</div>
-      <p>Monthly rent = area × price per m²</p><button onclick="tSave('${t.id || ''}')">Save</button></div>`;
+    function editRec(k, id) {
+        clearEdit();
+        EDIT[k] = id;
+        if (k == 'u') SUB.users = 'reg';
+        else SUB.tenants = k == 't' ? 'reg' : 'preg';
+        render();
     }
+    const btns = (k, id) => (can('edit') ? `<button class="s" onclick="editRec('${k}','${id}')">Edit</button>` : '') + (can('delete') ? `<button class="s d" onclick="rm('${k}','${id}')">Del</button>` : '');
+    function toast(m) {
+        const d = document.createElement('div');
+        d.className = 'toast';
+        d.textContent = m;
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), 2200);
+    }
+    const phead = t => `<div class="ph"><b>ARDO Rent Management System</b> — ${t} — ${dt(todayISO())}</div>`;
+    const bar = t => `<div class="bar"><h2>${t}</h2><button class="pbtn" onclick="window.print()">🖨 Print</button></div>${phead(t)}`;
+    const actions = (save, cancel) => `<div class="actions"><button onclick="${save}">Save</button>${cancel ? `<button class="xbtn" onclick="${cancel}">Cancel</button>` : ''}</div>`;
+    function field(id, l, v = '', type = 'text', opts, ro, ph = '') {
+        const ctl = opts
+            ? `<select id="${id}">${opts.map(o => `<option ${o == v ? 'selected' : ''}>${o}</option>`).join('')}</select>`
+            : `<input id="${id}" type="${type}" value="${esc(v)}" placeholder="${esc(ph)}" ${ro ? 'readonly' : ''}>`;
+        return `<div class="fld"><label>${l}</label>${ctl}</div>`;
+    }
+
+    // ---- Months (selectable chips) ----
+    const GM = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const mnames = () => EC() ? EM : GM;
+    const mkey = (y, m) => `${EC() ? 'E' : 'G'}:${y}-${pad(m)}`;
+    const mlabel = e => {
+        const [t, ym] = e.split(':');
+        const [y, m] = ym.split('-');
+        return (t == 'E' ? EM : GM)[m - 1] + ' ' + y;
+    };
+    // month entry -> [year, month] in the calendar currently in use
+    const mp = e => {
+        const [t, ym] = e.split(':');
+        const [y, m] = ym.split('-').map(Number);
+        if (t == (EC() ? 'E' : 'G')) return [y, m];
+        return t == 'E' ? ecToGc(y, m, 1).split('-').slice(0, 2).map(Number) : gcToEc(`${y}-${pad(m)}-01`).slice(0, 2);
+    };
+    const MSEL = new Set();
+    let MY = 0;
+    const msum = () => MSEL.size ? [...MSEL].sort().map(mlabel).join(', ') + ' (' + MSEL.size + ')' : 'No month selected';
+    function monthChips() {
+        return mnames().map((n, i) => {
+            const k = mkey(MY, i + 1);
+            return `<label class="chip"><input type="checkbox" ${MSEL.has(k) ? 'checked' : ''} onchange="toggleM('${k}',this.checked)"><span>${n}</span></label>`;
+        }).join('');
+    }
+    function toggleM(k, on) {
+        if (on) MSEL.add(k);
+        else MSEL.delete(k);
+        $('m_sum').textContent = msum();
+        pCalc();
+    }
+    function setMY(v) {
+        MY = +v;
+        $('m_chips').innerHTML = monthChips();
+    }
+
+    // ---- Tenants: register ----
+    function vTenantForm() {
+        const t = D.Tenants.find(x => x.id == EDIT.t) || {};
+        return `
+            <div class="card form">
+                <h2>${t.id ? 'Edit Tenant' : 'Register Tenant'}</h2>
+                <h3 class="sec">Personal Information</h3>
+                <div class="fg">
+                    ${field('f_name', 'Full Name', t.name, 'text', null, 0, 'e.g. Abebe Kebede')}
+                    ${field('f_gender', 'Gender', t.gender, '', GEN)}
+                    ${field('f_phone', 'Phone', t.phone, 'tel', null, 0, '09...')}
+                </div>
+                <h3 class="sec">Rent Details</h3>
+                <div class="fg" oninput="tCalc()">
+                    ${field('f_reason', 'Reason for Renting', t.reason, 'text', null, 0, 'Shop, office, ...')}
+                    ${field('f_contract', 'Agreement', t.contract, '', CON)}
+                    ${field('f_area', 'Area (m²)', t.area, 'number')}
+                    ${field('f_pps', 'Price per m²', t.pricePerSqm, 'number')}
+                    ${field('f_monthly', 'Monthly Rent (auto)', t.monthly, 'number', null, 1)}
+                    ${dfield('f_start', 'Rent Start Date', t.startDate)}
+                    ${dfield('f_end', 'Contract End Date', t.endDate)}
+                </div>
+                <h3 class="sec">Previous Debt</h3>
+                <div class="fg">
+                    ${field('f_dm', 'Previous Debt (months)', t.debtMonths || 0, 'number')}
+                    ${field('f_dp', 'Previous Debt Paid', t.debtPaid || 0, 'number')}
+                </div>
+                ${actions(`tSave('${t.id || ''}')`, t.id ? "clearEdit();SUB.tenants='list';render()" : '')}
+            </div>`;
+    }
+    const tCalc = () => { $('f_monthly').value = N(val('f_area')) * N(val('f_pps')); };
     async function tSave(id) {
-        const o = { id, name: val('f_name'), gender: val('f_gender'), phone: val('f_phone'), reason: val('f_reason'), area: val('f_area'), pricePerSqm: val('f_pps'),
-            monthly: N(val('f_area')) * N(val('f_pps')), startDate: dval('f_start'), endDate: dval('f_end'), contract: val('f_contract'), debtMonths: val('f_dm'), debtPaid: val('f_dp') };
-        if (!o.name) {
-            return alert('Enter a name');
-        }
+        const o = {
+            id, name: val('f_name'), gender: val('f_gender'), phone: val('f_phone'), reason: val('f_reason'),
+            area: val('f_area'), pricePerSqm: val('f_pps'), monthly: N(val('f_area')) * N(val('f_pps')),
+            startDate: dval('f_start'), endDate: dval('f_end'), contract: val('f_contract'), debtMonths: val('f_dm'), debtPaid: val('f_dp')
+        };
+        if (!o.name) return alert('Enter a name');
         await run('saveRow', T, 'Tenants', o);
+        clearEdit();
+        if (id) SUB.tenants = 'list';
+        else toast('Tenant registered');
         load();
     }
-    // ---- Payments ----
-    function vPay() {
-        const cols = [['tenant', 'Tenant'], ['gender', 'Gender', '', GEN], ['contract', 'Agreement', '', CON], ['method', 'Method', '', ['Bank', 'Cash']], ['status', 'Status', '', ['Paid', 'Unpaid']], ['months', 'Months', '', MON], ['receipt', 'Receipt'], ['cpv', 'CPV'], ['dueDate', 'Due'], ['date', 'Paid On'], ['total', 'Total'], ['penalty', 'Penalty', 'bad'], ['penaltyPaid', 'Penalty Paid'], ['penaltyMethod', 'Penalty Method', '', ['Bank', 'Cash']], ['penaltyReceipt', 'Penalty Receipt']];
-        const data = D.Payments.map(p => {
-            const t = D.Tenants.find(x => x.id == p.tenantId) || {};
-            return { ...p, tenant: tn(p.tenantId), gender: t.gender, contract: t.contract, dueDate: dt(p.dueDate), date: dt(p.date) };
-        });
-        return `<div class="card"><h2>Payments</h2>${can('add') ? `<button onclick="pForm()">+ New Payment</button>` : ''}<div id="form"></div>
-      ${tbl('pay', cols, data, r => btns('p', r.id), sh => `<tr><td colspan="10">Sum</td><td>${fmt(sh.reduce((a, r) => a + N(r.total), 0))}</td><td>${fmt(sh.reduce((a, r) => a + N(r.penalty), 0))}</td><td>${fmt(sh.reduce((a, r) => a + N(r.penaltyPaid), 0))}</td><td></td><td></td><td></td></tr>`)}</div>`;
+
+    // ---- Tenants: list ----
+    function vTenantList() {
+        const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['phone', 'Phone'], ['reason', 'Reason'], ['area', 'Area (m²)'], ['pricePerSqm', 'Price/m²'], ['monthly', 'Monthly Rent'], ['startDate', 'Rent Start'], ['endDate', 'Rent End'], ['contract', 'Agreement', '', CON], ['debtMonths', 'Prev. Debt Months'], ['debtPaid', 'Prev. Debt Paid']];
+        const data = D.Tenants.map(t => ({ ...t, monthly: fmt(t.monthly), startDate: dt(t.startDate), endDate: dt(t.endDate) }));
+        return `<div class="card">${bar('Tenants List')}${tbl('tenants', cols, data, r => btns('t', r.id))}</div>`;
     }
-    function pForm(id) {
-        const p = D.Payments.find(x => x.id == id) || {};
-        $('form').innerHTML = `<div class="card" oninput="if(event.target.closest('#p_t,#p_n,#p_s,#p_d,#p_p'))pCalc()"><div class="grid"><div><label>Tenant</label><select id="p_t">${D.Tenants.map(t => `<option value="${t.id}" ${t.id == p.tenantId ? 'selected' : ''}>${esc(t.name)}</option>`)}</select></div>
-      ${field('p_m', 'Payment Method', p.method, '', ['Bank', 'Cash'])}${field('p_s', 'Status', p.status, '', ['Paid', 'Unpaid'])}${field('p_n', 'Months Paid', p.months || 1, 'number')}
-      ${field('p_r', 'Receipt No.', p.receipt)}${field('p_c', 'CPV No.', p.cpv)}${dfield('p_d', 'Due Date', p.dueDate)}${dfield('p_p', 'Date Paid', p.date)}
-      ${field('p_tot', 'Total Payment (Rent × Months)', p.total || '', 'number', '', 1)}${field('p_pen', 'Penalty (automatic)', p.penalty || 0, 'number', '', 1)}</div>
-      <h3 style="color:var(--g2);margin:10px 0 0">Penalty Payment</h3><div class="grid">${field('p_pp', 'Penalty Amount Paid', p.penaltyPaid || 0, 'number')}${field('p_pm', 'Penalty Payment Method', p.penaltyMethod, '', ['Bank', 'Cash'])}${field('p_pr', 'Penalty Receipt No.', p.penaltyReceipt)}</div>
-      <button onclick="pSave('${p.id || ''}')">Save</button></div>`;
-        if (!p.id) {
-            pCalc();
-        }
+
+    // ---- Payments: register ----
+    function vPayForm() {
+        const p = D.Payments.find(x => x.id == EDIT.p) || {};
+        MSEL.clear();
+        (p.monthList || '').split(',').filter(Boolean).forEach(k => MSEL.add(k));
+        MY = MSEL.size ? mp([...MSEL][0])[0] : parts(todayISO())[0];
+        return `
+            <div class="card form" oninput="if(event.target.closest('#p_t,#p_s,#p_d,#p_p'))pCalc()">
+                <h2>${p.id ? 'Edit Payment' : 'Register Payment'}</h2>
+                <h3 class="sec">Payment Details</h3>
+                <div class="fg">
+                    <div class="fld"><label>Tenant</label><select id="p_t">${D.Tenants.map(t => `<option value="${t.id}" ${t.id == p.tenantId ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div>
+                    ${field('p_m', 'Payment Method', p.method, '', ['Bank', 'Cash'])}
+                    ${field('p_s', 'Status', p.status, '', ['Paid', 'Unpaid'])}
+                    ${field('p_r', 'Receipt No.', p.receipt)}
+                    ${field('p_c', 'CPV No.', p.cpv)}
+                    ${dfield('p_d', 'Due Date', p.dueDate)}
+                    ${dfield('p_p', 'Date Paid', p.date)}
+                </div>
+                <h3 class="sec">Months Paid</h3>
+                <div class="fg"><div class="fld"><label>Year${EC() ? ' (EC)' : ''}</label><input type="number" id="m_y" value="${MY}" onchange="setMY(this.value)"></div></div>
+                <div id="m_chips" class="chips">${monthChips()}</div>
+                <p class="msum" id="m_sum">${msum()}</p>
+                <div class="fg">
+                    ${field('p_tot', 'Total Payment (Rent × Months)', p.total || '', 'number', null, 1)}
+                    ${field('p_pen', 'Penalty (automatic)', p.penalty || 0, 'number', null, 1)}
+                </div>
+                <h3 class="sec">Penalty Payment</h3>
+                <div class="fg">
+                    ${field('p_pp', 'Penalty Amount Paid', p.penaltyPaid || 0, 'number')}
+                    ${field('p_pm', 'Penalty Payment Method', p.penaltyMethod, '', ['Bank', 'Cash'])}
+                    ${field('p_pr', 'Penalty Receipt No.', p.penaltyReceipt)}
+                </div>
+                ${actions(`pSave('${p.id || ''}')`, p.id ? "clearEdit();SUB.tenants='plist';render()" : '')}
+            </div>`;
     }
     function pCalc() {
         const t = D.Tenants.find(x => x.id == val('p_t'));
-        if (!t) {
-            return;
-        }
-        const total = N(t.monthly) * N(val('p_n'));
+        if (!t) return;
+        const total = N(t.monthly) * MSEL.size;
         $('p_tot').value = total;
         $('p_pen').value = val('p_s') == 'Paid' ? Math.round(penaltyFor(total, dval('p_d'), dval('p_p')) * 100) / 100 : 0;
     }
     async function pSave(id) {
         const t = D.Tenants.find(x => x.id == val('p_t'));
-        if (!t) {
-            return alert('Select a tenant');
-        }
-        if (val('p_s') == 'Paid' && !val('p_r')) {
-            return alert('Enter the payment receipt number');
-        }
-        if (N(val('p_pp')) > 0 && !val('p_pr')) {
-            return alert('Enter the receipt number for the penalty payment');
-        }
-        await run('saveRow', T, 'Payments', { id, tenantId: t.id, method: val('p_m'), status: val('p_s'), months: val('p_n'), receipt: val('p_r'), cpv: val('p_c'), dueDate: dval('p_d'), date: dval('p_p'), total: val('p_tot'), penalty: val('p_pen'), penaltyPaid: val('p_pp'), penaltyMethod: N(val('p_pp')) > 0 ? val('p_pm') : '', penaltyReceipt: val('p_pr') });
+        if (!t) return alert('Select a tenant');
+        if (!MSEL.size) return alert('Select at least one month');
+        if (val('p_s') == 'Paid' && !val('p_r')) return alert('Enter the payment receipt number');
+        if (N(val('p_pp')) > 0 && !val('p_pr')) return alert('Enter the receipt number for the penalty payment');
+        await run('saveRow', T, 'Payments', {
+            id, tenantId: t.id, method: val('p_m'), status: val('p_s'), months: MSEL.size, monthList: [...MSEL].sort().join(','),
+            receipt: val('p_r'), cpv: val('p_c'), dueDate: dval('p_d'), date: dval('p_p'), total: val('p_tot'), penalty: val('p_pen'),
+            penaltyPaid: val('p_pp'), penaltyMethod: N(val('p_pp')) > 0 ? val('p_pm') : '', penaltyReceipt: val('p_pr')
+        });
+        clearEdit();
+        if (id) SUB.tenants = 'plist';
+        else toast('Payment registered');
         load();
     }
+
+    // ---- Payments: list ----
+    function vPayList() {
+        const cols = [['tenant', 'Tenant'], ['gender', 'Gender', '', GEN], ['contract', 'Agreement', '', CON], ['method', 'Method', '', ['Bank', 'Cash']], ['status', 'Status', '', ['Paid', 'Unpaid']], ['monthsTxt', 'Months'], ['months', 'Count'], ['receipt', 'Receipt'], ['cpv', 'CPV'], ['dueDate', 'Due'], ['date', 'Paid On'], ['total', 'Total'], ['penalty', 'Penalty', 'bad'], ['penaltyPaid', 'Penalty Paid'], ['penaltyMethod', 'Penalty Method', '', ['Bank', 'Cash']], ['penaltyReceipt', 'Penalty Receipt']];
+        const data = D.Payments.map(p => {
+            const t = D.Tenants.find(x => x.id == p.tenantId) || {};
+            const monthsTxt = (p.monthList || '').split(',').filter(Boolean).map(mlabel).join(', ');
+            return { ...p, tenant: tn(p.tenantId), gender: t.gender, contract: t.contract, monthsTxt, dueDate: dt(p.dueDate), date: dt(p.date) };
+        });
+        const sum = (sh, k) => fmt(sh.reduce((a, r) => a + N(r[k]), 0));
+        const foot = sh => `<tr><td colspan="11">Sum</td><td>${sum(sh, 'total')}</td><td>${sum(sh, 'penalty')}</td><td>${sum(sh, 'penaltyPaid')}</td><td></td><td></td><td class="act"></td></tr>`;
+        return `<div class="card">${bar('Payments List')}${tbl('pay', cols, data, r => btns('p', r.id), foot)}</div>`;
+    }
+
     // ---- Debts ----
     function vDebt() {
         const cols = [['name', 'Tenant'], ['gender', 'Gender', '', GEN], ['contract', 'Agreement', '', CON], ['owedM', 'Unpaid Months'], ['owedAmt', 'Monthly Debt'], ['prev', 'Prev. Debt Remaining'], ['total', 'Total Debt'], ['pen', 'Penalty', 'bad'], ['penPaid', 'Penalty Paid'], ['penLeft', 'Penalty Remaining', 'bad'], ['all', 'Grand Total']];
@@ -706,18 +877,25 @@
             const d = debtOf(t);
             return { name: t.name, gender: t.gender, contract: t.contract, owedM: d.owedM, owedAmt: fmt(d.owedAmt), prev: fmt(d.prev), total: fmt(d.total), pen: fmt(d.pen), penPaid: fmt(d.penPaid), penLeft: fmt(d.penLeft), all: fmt(d.total + d.penLeft) };
         });
-        return `<div class="card"><h2>Tenant Debts</h2>${tbl('debt', cols, data)}</div>`;
+        return `<div class="card">${bar('Tenant Debts')}${tbl('debt', cols, data)}</div>`;
     }
-    // ---- Report (quarterly) ----
+
+    // ---- Report (quarterly, shown by months) ----
+    function qLabel(q) {
+        const n = mnames();
+        const a = (q - 1) * 3;
+        return n[a] + ' – ' + n[q == 4 && EC() ? 12 : a + 2];
+    }
     function vReport() {
         const C = S('calendar') || 'GC';
         if (F.yc != C) {
             F.yc = C;
             const tp = parts(todayISO());
             F.y = tp[0];
-            F.q = Math.floor((tp[1] - 1) / 3) + 1;
+            F.q = Math.min(4, Math.floor((tp[1] - 1) / 3) + 1);
         }
         const m0 = (F.q - 1) * 3 + 1;
+        const last = F.q == 4 && EC() ? 13 : m0 + 2;
         let aI;
         let bI;
         if (EC()) {
@@ -727,41 +905,147 @@
             aI = `${F.y}-${pad(m0)}-01`;
             bI = iso(new Date(Date.UTC(F.y, m0 + 2, 0)));
         }
+        const inQ = e => {
+            const [y, m] = mp(e);
+            return y == F.y && m >= m0 && m <= last;
+        };
         const data = D.Tenants.map(t => {
-            const ps = D.Payments.filter(p => p.tenantId == t.id && p.status == 'Paid' && p.date >= aI && p.date <= bI);
-            const pm = ps.reduce((s, p) => s + N(p.months), 0);
-            const paid = ps.reduce((s, p) => s + N(p.total), 0);
+            let pm = 0;
+            let paid = 0;
+            D.Payments.filter(p => p.tenantId == t.id && p.status == 'Paid').forEach(p => {
+                if (p.monthList) {
+                    const c = p.monthList.split(',').filter(inQ).length;
+                    pm += c;
+                    paid += N(p.months) ? N(p.total) / N(p.months) * c : 0;
+                } else if (p.date >= aI && p.date <= bI) {
+                    pm += N(p.months);
+                    paid += N(p.total);
+                }
+            });
             const um = Math.max(0, 3 - pm);
             return { name: t.name, gender: t.gender, contract: t.contract, pm, paid: fmt(paid), um, unpaid: fmt(um * N(t.monthly)), _p: paid, _u: um * N(t.monthly) };
         });
         const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['contract', 'Agreement', '', CON], ['pm', 'Months Paid'], ['paid', 'Paid'], ['um', 'Months Unpaid'], ['unpaid', 'Unpaid', 'bad']];
         const sh = flt('report', cols, data);
-        return `<div class="card"><h2>Quarterly Report</h2><div class="grid">${field('r_y', EC() ? 'Year (EC)' : 'Year', F.y, 'number')}<div><label>Quarter</label><select onchange="F.q=+this.value;render()">${[1, 2, 3, 4].map(q => `<option ${F.q == q ? 'selected' : ''}>${q}</option>`)}</select></div></div>
-      <button onclick="F.y=+val('r_y');render()">Show</button>
-      <div class="grid"><div class="kpi">Paid<b>${fmt(sh.reduce((s, r) => s + r._p, 0))}</b></div><div class="kpi">Unpaid<b class="bad">${fmt(sh.reduce((s, r) => s + r._u, 0))}</b></div></div>
-      ${tbl('report', cols, data)}<button onclick="window.print()">Print</button></div>`;
+        const qOpts = [1, 2, 3, 4].map(q => `<option value="${q}" ${F.q == q ? 'selected' : ''}>${qLabel(q)}</option>`).join('');
+        return `
+            <div class="card form">
+                <h2>Quarterly Report</h2>
+                <div class="fg">
+                    ${field('r_y', EC() ? 'Year (EC)' : 'Year', F.y, 'number')}
+                    <div class="fld"><label>Months</label><select onchange="F.q=+this.value;render()">${qOpts}</select></div>
+                </div>
+                <div class="actions"><button onclick="F.y=+val('r_y');render()">Show</button></div>
+            </div>
+            <div class="card">
+                ${bar('Report: ' + qLabel(F.q) + ' ' + F.y)}
+                <div class="grid">
+                    <div class="kpi">Paid<b>${fmt(sh.reduce((s, r) => s + r._p, 0))}</b></div>
+                    <div class="kpi">Unpaid<b class="bad">${fmt(sh.reduce((s, r) => s + r._u, 0))}</b></div>
+                </div>
+                ${tbl('report', cols, data)}
+            </div>`;
     }
-    // ---- Users (Super Admin) ----
-    function vUsers() {
-        const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['role', 'Role', '', ['Admin', 'Super Admin']], ['code', 'Code'], ['email', 'Email'], ['status', 'Status', '', ['Active', 'Pending']], ['perms', 'Permissions']];
-        const data = D.Users.map(u => ({ ...u, status: u.status || 'Active' }));
-        return `<div class="card"><h2>Users (Staff)</h2><button onclick="uForm()">+ New Staff</button><div id="form"></div>${tbl('users', cols, data, r => `<button class="s" onclick="uForm('${r.id}')">Edit</button><button class="s d" onclick="rm('u','${r.id}')">Del</button>`)}</div>`;
-    }
-    function uForm(id) {
-        const u = D.Users.find(x => x.id == id) || {};
-        const pp = (u.perms || '').split(',');
-        $('form').innerHTML = `<div class="card"><div class="grid">${field('u_n', 'Full Name', u.name)}${field('u_g', 'Gender', u.gender, '', GEN)}${field('u_r', 'Role', u.role || 'Admin', '', ['Admin', 'Super Admin'])}${u.code ? field('u_c', 'Code', u.code, 'text', 0, 1) : ''}${field('u_p', 'Password (leave blank: the staff member creates it via Create account)', '', 'password')}</div>
-      ${u.code ? '' : '<p>Code (ARDORS01, ARDORS02 …) is generated automatically. Give the code to the staff member; they enter their own Email when they use Create account.</p>'}
-      <p>Admin permissions:</p>${['view', 'add', 'edit', 'delete'].map(k => `<label><input type="checkbox" class="pc" value="${k}" ${pp.includes(k) ? 'checked' : ''} style="width:auto"> ${k}</label> `).join('')}
-      <button onclick="uSave('${u.id || ''}')">Save</button></div>`;
+
+    // ---- Users (Super Admin): register + list ----
+    const BASE_ROLES = ['Admin', 'Super Admin'];
+    const roles = () => [...new Set([...BASE_ROLES, ...(S('roles') || '').split(',').map(x => x.trim()).filter(Boolean)])];
+    const PERMS = [['view', '👁', 'View', 'See all records'], ['add', '➕', 'Add', 'Register new records'], ['edit', '✏️', 'Edit', 'Change existing records'], ['delete', '🗑', 'Delete', 'Remove records']];
+    function vUserForm() {
+        const u = D.Users.find(x => x.id == EDIT.u) || {};
+        const pp = u.id ? (u.perms || '').split(',') : ['view'];
+        const permBoxes = PERMS.map(p => `
+            <label class="perm"><input type="checkbox" class="pc" value="${p[0]}" ${pp.includes(p[0]) ? 'checked' : ''}>
+                <span class="pbox"><i>${p[1]}</i><b>${p[2]}</b><small>${p[3]}</small></span>
+            </label>`).join('');
+        return `
+            <div class="card form">
+                <h2>${u.id ? 'Edit User' : 'Register User'}</h2>
+                <h3 class="sec">Staff Information</h3>
+                <div class="fg">
+                    ${field('u_n', 'Full Name', u.name, 'text', null, 0, 'Full name')}
+                    ${field('u_g', 'Gender', u.gender, '', GEN)}
+                    ${field('u_r', 'Role', u.role || 'Admin', '', roles())}
+                    ${field('u_e', 'Email (optional)', u.email, 'email', null, 0, 'name@example.com')}
+                    ${u.code ? field('u_c', 'Code', u.code, 'text', null, 1) : ''}
+                    ${field('u_p', u.id ? 'New Password (leave blank to keep)' : 'Password', u.id ? '' : '1234', u.id ? 'password' : 'text')}
+                </div>
+                ${u.id ? '' : '<p class="hint">The code (ARDORS01, ARDORS02 …) is generated automatically. Default password is 1234 (minimum 4 characters).</p>'}
+                <h3 class="sec">Permissions</h3>
+                <div class="perms">${permBoxes}</div>
+                ${actions(`uSave('${u.id || ''}')`, u.id ? "clearEdit();SUB.users='list';render()" : '')}
+            </div>`;
     }
     async function uSave(id) {
         const perms = [...document.querySelectorAll('.pc:checked')].map(x => x.value).join(',');
-        if (!val('u_n')) {
-            return alert('Enter a name');
-        }
-        await run('saveRow', T, 'Users', { id, name: val('u_n'), gender: val('u_g'), role: val('u_r'), password: val('u_p'), perms });
+        const pw = val('u_p');
+        const em = val('u_e').trim();
+        if (!val('u_n')) return alert('Enter a name');
+        if (pw && pw.length < 4) return alert('Password must be at least 4 characters');
+        if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return alert('Enter a valid email or leave it empty');
+        await run('saveRow', T, 'Users', { id, name: val('u_n'), gender: val('u_g'), role: val('u_r'), email: em, password: pw, perms });
+        clearEdit();
+        if (id) SUB.users = 'list';
+        else toast('User registered');
         load();
+    }
+    function vUserList() {
+        const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['role', 'Role', '', roles()], ['code', 'Code'], ['email', 'Email'], ['status', 'Status', '', ['Active', 'Pending']], ['perms', 'Permissions']];
+        const data = D.Users.map(u => ({ ...u, status: u.status || 'Active' }));
+        const act = r => `<button class="s" onclick="editRec('u','${r.id}')">Edit</button><button class="s d" onclick="rm('u','${r.id}')">Del</button>`;
+        return `<div class="card">${bar('Users List')}${tbl('users', cols, data, act)}</div>`;
+    }
+
+    // ---- Settings: penalty + user roles ----
+    function vSet() {
+        const chips = roles().map(r => `<span class="rchip">${esc(r)}${BASE_ROLES.includes(r) ? '' : `<a onclick="rmRole('${esc(r)}')">×</a>`}</span>`).join('');
+        return `
+            <div class="card form">
+                <h2>Penalty Settings</h2>
+                <div class="fg">
+                    ${field('s_c', 'Calendar', S('calendar') || 'GC', '', ['GC', 'EC'])}
+                    ${field('s_t', 'Penalty Type', S('penaltyType'), '', ['percent', 'fixed'])}
+                    ${field('s_v', 'Value (% or number)', S('penaltyValue'), 'number')}
+                    ${field('s_g', 'Grace days', S('graceDays'), 'number')}
+                </div>
+                <p class="hint">Calendar: GC = Gregorian · EC = Ethiopian (only the dates change)<br>percent: total × % × days late &nbsp;|&nbsp; fixed: one-time fixed amount</p>
+                ${actions('sSave()')}
+            </div>
+            <div class="card form">
+                <h2>User Roles</h2>
+                <div class="chips">${chips}</div>
+                <div class="fg">${field('s_role', 'Add New Role', '', 'text', null, 0, 'e.g. Accountant')}</div>
+                ${actions('addRole()').replace('>Save<', '>+ Add Role<')}
+            </div>`;
+    }
+    async function sSave() {
+        await run('saveRow', T, 'Settings', { key: 'calendar', value: val('s_c') });
+        await run('saveRow', T, 'Settings', { key: 'penaltyType', value: val('s_t') });
+        await run('saveRow', T, 'Settings', { key: 'penaltyValue', value: val('s_v') });
+        await run('saveRow', T, 'Settings', { key: 'graceDays', value: val('s_g') });
+        toast('Settings saved');
+        load();
+    }
+    async function addRole() {
+        const r = val('s_role').replace(/[<>"',]/g, '').trim();
+        if (!r) return alert('Enter a role name');
+        if (roles().some(x => x.toLowerCase() == r.toLowerCase())) return alert('This role already exists');
+        await run('saveRow', T, 'Settings', { key: 'roles', value: [...roles().filter(x => !BASE_ROLES.includes(x)), r].join(',') });
+        toast('Role added');
+        load();
+    }
+    async function rmRole(r) {
+        if ((D.Users || []).some(u => u.role == r)) return alert('This role is used by a user and cannot be removed');
+        if (!confirm('Remove role "' + r + '"?')) return;
+        await run('saveRow', T, 'Settings', { key: 'roles', value: roles().filter(x => !BASE_ROLES.includes(x) && x != r).join(',') });
+        load();
+    }
+    async function lpCreate() {
+        let R = BASE_ROLES;
+        try { R = await run('getRoles'); } catch (e) { }
+        lpbox(`<h2>Create account</h2><label>Role</label><select id="c_r">${R.map(r => `<option>${esc(r)}</option>`).join('')}</select>
+            <input id="c_c" placeholder="Code (ARDORS01)"><input id="c_e" type="email" placeholder="Email (optional)"><input id="c_p" type="password" placeholder="Password (min 4)"><input id="c_p2" type="password" placeholder="Confirm password">
+            <button onclick="doCreate()">Create account</button><button class="xbtn" style="width:100%" onclick="lpBack()">← Back</button><p id="lm2" class="bad"></p>`);
     }
     // ---- Login page: Create account / Forgot password ----
     const lpbox = h => {
@@ -778,11 +1062,6 @@
         e.style.color = ok ? 'var(--g2)' : '';
         e.textContent = t;
     };
-    function lpCreate() {
-        lpbox(`<h2>Create account</h2><label>Role</label><select id="c_r"><option>Admin</option><option>Super Admin</option></select>
-      <input id="c_c" placeholder="Code (ARDORS01)"><input id="c_e" type="email" placeholder="Email"><input id="c_p" type="password" placeholder="Password (min 6)"><input id="c_p2" type="password" placeholder="Confirm password">
-      <button onclick="doCreate()">Create account</button><button class="xbtn" style="width:100%" onclick="lpBack()">← Back</button><p id="lm2" class="bad"></p>`);
-    }
     async function doCreate() {
         if ($('c_p').value != $('c_p2').value) {
             return msg2('Passwords do not match');
@@ -800,7 +1079,7 @@
     function lpForgot() {
         lpbox(`<h2>Forgot password</h2><input id="f_c" placeholder="Code (ARDORS01)"><input id="f_e" type="email" placeholder="Registered email">
       <button onclick="doFSend()">Send code to my email</button>
-      <div id="f2" class="hide"><input id="f_o" placeholder="Verification code (6 digits)"><input id="f_p" type="password" placeholder="New password (min 6)"><input id="f_p2" type="password" placeholder="Confirm new password"><button onclick="doFReset()">Reset password</button></div>
+      <div id="f2" class="hide"><input id="f_o" placeholder="Verification code (6 digits)"><input id="f_p" type="password" placeholder="New password (min 4)"><input id="f_p2" type="password" placeholder="Confirm new password"><button onclick="doFReset()">Reset password</button></div>
       <button class="xbtn" style="width:100%" onclick="lpBack()">← Back</button><p id="lm2" class="bad"></p>`);
     }
     async function doFSend() {
@@ -822,19 +1101,6 @@
         $('lm').style.color = 'var(--g2)';
         $('lm').textContent = 'Password has been changed. Log in now.';
     }
-    // ---- Settings ----
-    function vSet() {
-        return `<div class="card"><h2>Penalty Settings</h2><div class="grid">${field('s_c', 'Calendar', S('calendar') || 'GC', '', ['GC', 'EC'])}${field('s_t', 'Penalty Type', S('penaltyType'), '', ['percent', 'fixed'])}${field('s_v', 'Value (% or number)', S('penaltyValue'), 'number')}${field('s_g', 'Grace days', S('graceDays'), 'number')}</div>
-      <p>Calendar: GC = Gregorian · EC = Ethiopian (only the dates change)</p><p>percent: total × % × days late &nbsp;|&nbsp; fixed: one-time fixed amount</p><button onclick="sSave()">Save</button></div>`;
-    }
-    async function sSave() {
-        await run('saveRow', T, 'Settings', { key: 'calendar', value: val('s_c') });
-        await run('saveRow', T, 'Settings', { key: 'penaltyType', value: val('s_t') });
-        await run('saveRow', T, 'Settings', { key: 'penaltyValue', value: val('s_v') });
-        await run('saveRow', T, 'Settings', { key: 'graceDays', value: val('s_g') });
-        load();
-    }
-
     </script>
 </body>
 
