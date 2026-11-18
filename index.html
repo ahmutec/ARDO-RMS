@@ -394,25 +394,53 @@
             .ph { display: block; margin-bottom: 8px; }
             .act, .bar button { display: none !important; }
         }
+        nav, nav.sub { flex-wrap: wrap; justify-content: center; overflow-x: visible; }
+        .bar { flex-direction: column; justify-content: center; text-align: center; margin-bottom: 8px; }
+        .actions, .lk { justify-content: center; }
+        td.act { text-align: center; }
+        .center { text-align: center; }
+        .lang-sw { display: inline-flex; gap: 4px; }
+        .lang-sw button { width: auto; margin: 0; padding: 4px 10px; font-size: 12px; background: #fff; color: var(--g2); border: 1px solid var(--g); }
+        .lang-sw button.on { background: var(--g); color: #fff; }
+        header .lang-sw button.on { background: var(--g2); border-color: #fff; }
+        #login > .lang-sw { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+        table.sum { max-width: 760px; margin: 0 auto; }
+        table.sum td, table.sum th { text-align: center; }
+        table.sum tr.tot td { font-weight: 700; background: var(--l); }
+        .perm-table { max-width: 640px; margin: 8px auto; }
+        .perm-table th, .perm-table td { text-align: center; }
+        .perm-table td.ptab { text-align: left; font-weight: 700; }
+        .perm-table td.psub { padding-left: 28px; font-weight: 400; }
+        .perm-table input { width: 20px; height: 20px; margin: 0; accent-color: var(--g); }
+        .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 8px 0 18px; }
+        .hb-row { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; }
+        .hb-l { width: 110px; flex: none; text-align: right; font-weight: 600; font-size: 13px; color: var(--g2); padding-top: 1px; }
+        .hb-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .hb-line { display: flex; align-items: center; gap: 6px; }
+        .hb-bar { height: 16px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .hb-v { font-size: 12px; font-weight: 700; }
+        .legend { display: flex; gap: 16px; justify-content: center; font-size: 13px; margin-bottom: 4px; }
+        .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     </style>
 </head>
 
 <body>
     <!-- ===== Login screen ===== -->
     <div id="login">
+        <div class="lang-sw"></div>
         <div class="brand">
             <img class="lg-img" alt="ARDO logo">
             <h1>ARDO</h1>
-            <p>Rent Management System</p>
+            <p data-t="Rent Management System">Rent Management System</p>
         </div>
         <div id="lg">
-            <input id="u" placeholder="Username or Code">
-            <input id="p" type="password" placeholder="Password" onkeydown="event.key=='Enter'&&doLogin()">
-            <button onclick="doLogin()">Login</button>
+            <input id="u" placeholder="Username or Code" data-p="Username or Code">
+            <input id="p" type="password" placeholder="Password" data-p="Password" onkeydown="event.key=='Enter'&&doLogin()">
+            <button onclick="doLogin()" data-t="Login">Login</button>
             <p id="lm" class="bad"></p>
             <div class="lk">
-                <button class="bl" onclick="lpCreate()">Create account</button>
-                <button class="bl" onclick="lpForgot()">Forgot password</button>
+                <button class="bl" onclick="lpCreate()" data-t="Create account">Create account</button>
+                <button class="bl" onclick="lpForgot()" data-t="Forgot password">Forgot password</button>
             </div>
         </div>
         <div id="lp"></div>
@@ -423,10 +451,11 @@
         <header>
             <span class="hb">
                 <img class="lg-img" alt="ARDO">
-                <b>ARDO Rent Management System</b>
+                <b data-t="ARDO Rent Management System">ARDO Rent Management System</b>
             </span>
+            <span class="lang-sw"></span>
             <span id="who"></span>
-            <button onclick="doLogout()">Logout</button>
+            <button onclick="doLogout()" data-t="Logout">Logout</button>
         </header>
         <nav id="nav"></nav>
         <main id="main"></main>
@@ -475,7 +504,7 @@
                 const a = b.parentElement.classList.contains('lk') ? b.parentElement : b;
                 const d = document.createElement('div');
                 d.className = 'ld';
-                d.innerHTML = '<span class="sp"></span>Loading...';
+                d.innerHTML = '<span class="sp"></span>' + L('Loading...');
                 a.insertAdjacentElement('afterend', d);
                 b._d = d;
             }
@@ -502,25 +531,23 @@
             const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn, args }) });
             r = await res.json();
         } catch (e) {
-            alert('Cannot reach the server. Check API_URL and your internet connection.');
+            alert(L('Cannot reach the server. Check API_URL and your internet connection.'));
             throw e;
         }
         if (!r.ok) {
             if ((r.error || '').includes('SESSION_EXPIRED')) {
                 doLogout(1);
             } else {
-                alert(r.error);
+                alert(L(r.error));
             }
             throw new Error(r.error);
         }
         return r.data;
     }
-    const can = p => ME.role == 'Super Admin' || (ME.perms || '').split(',').includes(p);
     const SA = () => ME.role == 'Super Admin';
     const S = k => ((D.Settings || []).find(x => x.key == k) || {}).value;
     const EC = () => S('calendar') == 'EC';
     const MPY = () => EC() ? 13 : 12;
-    const EM = ['Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit', 'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'];
     const iso = d => d.toISOString().slice(0, 10);
     const todayISO = () => iso(new Date());
     const pad = n => String(n).padStart(2, '0');
@@ -553,7 +580,7 @@
             return i;
         }
         const p = gcToEc(i);
-        return `${p[2]} ${EM[p[1] - 1]} ${p[0]}`;
+        return `${p[2]} ${emn(p[1] - 1)} ${p[0]}`;
     };
     function dfield(id, l, v) {
         return `<div><label>${l}</label><div id="${id}"><input type="date" id="${id}_i" value="${esc(v)}" ${EC() ? `oninput="ecHint('${id}')"` : ''}>${EC() ? `<small id="${id}_h" style="color:var(--g2)">${v ? 'EC: ' + dt(v) : ''}</small>` : ''}</div></div>`;
@@ -568,14 +595,14 @@
         const r = await run('login', $('u').value, $('p').value);
         if (!r.ok) {
             $('lm').style.color = '';
-            $('lm').textContent = r.msg;
+            $('lm').textContent = L(r.msg);
             return;
         }
         T = r.token;
         ME = r.user;
         $('login').classList.add('hide');
         $('app').classList.remove('hide');
-        $('who').textContent = ME.name + ' (' + ME.role + ')';
+        $('who').textContent = ME.name + ' (' + L(ME.role) + ')';
         await load();
         resetIdle();
     }
@@ -589,7 +616,7 @@
         $('login').classList.remove('hide');
         $('p').value = '';
         $('lm').style.color = '';
-        $('lm').textContent = exp ? 'Session expired after 5 minutes of inactivity.' : '';
+        $('lm').textContent = exp ? L('Session expired after 5 minutes of inactivity.') : '';
     }
     function resetIdle() {
         clearTimeout(idle);
@@ -615,17 +642,17 @@
     function tbl(id, cols, data, act, foot) {
         const f = FL[id] || {};
         const sh = flt(id, cols, data);
-        const th = cols.map(c => `<th>${c[1]}</th>`).join('') + (act ? '<th class="act"></th>' : '');
+        const th = cols.map(c => `<th>${L(c[1])}</th>`).join('') + (act ? '<th class="act"></th>' : '');
         const fr = cols.map(c => {
             const u = c[3] || [...new Set(data.map(r => String(r[c[0]] ?? '')))].filter(x => x !== '').sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            return `<th class="fl"><select onchange="setF('${id}','${c[0]}',this.value)"><option value="">all</option>${u.map(x => `<option value="${esc(x)}" ${f[c[0]] === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></th>`;
+            return `<th class="fl"><select onchange="setF('${id}','${c[0]}',this.value)"><option value="">${L('all')}</option>${u.map(x => `<option value="${esc(x)}" ${f[c[0]] === x ? 'selected' : ''}>${esc(L(x))}</option>`).join('')}</select></th>`;
         }).join('')
             + (act ? `<th class="fl"><button class="xbtn" onclick="FL['${id}']={};render()">✕</button></th>` : '');
-        return `<div class="wrap"><table><tr>${th}</tr><tr>${fr}</tr>${sh.map(r => `<tr>${cols.map(c => `<td class="${c[2] || ''}">${esc(r[c[0]])}</td>`).join('')}${act ? `<td class="act">${act(r)}</td>` : ''}</tr>`).join('')}${foot ? `<tfoot>${foot(sh)}</tfoot>` : ''}</table></div>`;
+        return `<div class="wrap"><table><tr>${th}</tr><tr>${fr}</tr>${sh.map(r => `<tr>${cols.map(c => `<td class="${c[2] || ''}">${esc(L(String(r[c[0]] ?? '')))}</td>`).join('')}${act ? `<td class="act">${act(r)}</td>` : ''}</tr>`).join('')}${foot ? `<tfoot>${foot(sh)}</tfoot>` : ''}</table></div>`;
     }
     const TBL = { t: 'Tenants', p: 'Payments', u: 'Users' };
     async function rm(k, id) {
-        if (confirm('Delete this record?')) {
+        if (confirm(L('Delete this record?'))) {
             await run('deleteRow', T, TBL[k], id);
             load();
         }
@@ -655,6 +682,105 @@
     const val = id => $(id).value;
     const GEN = ['Male', 'Female', 'Other'];
     const CON = ['Contract', 'Non-contract'];
+    // ---- Language (English / Amharic) ----
+    let LANG = 'en';
+    try { LANG = localStorage.getItem('lang') || 'en'; } catch (e) { }
+    const AM = {
+        'ARDO Rent Management System': 'ARDO የኪራይ አስተዳደር ሲስተም', 'Rent Management System': 'የኪራይ አስተዳደር ሲስተም',
+        'Username or Code': 'የተጠቃሚ ስም ወይም ኮድ', 'Password': 'ፓስዎርድ', 'Login': 'ግባ', 'Logout': 'ውጣ',
+        'Create account': 'አካውንት ክፈት', 'Forgot password': 'ፓስዎርድ ረሳሁ', 'Loading...': 'በመጫን ላይ...',
+        'Tenants': 'ተከራዮች', 'Users': 'ተጠቃሚዎች', 'Report': 'ሪፖርት', 'Settings': 'ቅንብሮች',
+        'Register Tenant': 'ተከራይ መመዝገቢያ', 'Tenants List': 'የተከራዮች ዝርዝር', 'Register Payment': 'ክፍያ መመዝገቢያ',
+        'Payments List': 'የክፍያዎች ዝርዝር', 'Debts': 'ዕዳዎች', 'Register User': 'ተጠቃሚ መመዝገቢያ', 'Users List': 'የተጠቃሚዎች ዝርዝር',
+        'Submit': 'አስገባ', 'Cancel': 'ተወው', 'Edit': 'አስተካክል', 'Del': 'ሰርዝ', 'Print': 'አትም', 'all': 'ሁሉም', 'View only': 'ማየት ብቻ',
+        'Male': 'ወንድ', 'Female': 'ሴት', 'Other': 'ሌላ', 'Contract': 'ውል ያለው', 'Non-contract': 'ውል የሌለው',
+        'Bank': 'ባንክ', 'Cash': 'ጥሬ ገንዘብ', 'Paid': 'የተከፈለ', 'Unpaid': 'ያልተከፈለ', 'Active': 'ንቁ', 'Pending': 'በመጠባበቅ',
+        'Admin': 'አድሚን', 'Super Admin': 'ሱፐር አድሚን', 'percent': 'መቶኛ', 'fixed': 'ቋሚ',
+        'Edit Tenant': 'ተከራይ አስተካክል', 'Personal Information': 'የግል መረጃ', 'Full Name': 'ሙሉ ስም', 'Gender': 'ጾታ', 'Phone': 'ስልክ',
+        'Rent Details': 'የኪራይ ዝርዝር', 'Reason for Renting': 'የኪራይ ምክንያት', 'Agreement': 'ስምምነት', 'Area (m²)': 'ስፋት (ካሬ ሜትር)',
+        'Price per m²': 'የአንድ ካሬ ዋጋ', 'Monthly Rent (auto)': 'ወርሃዊ ኪራይ (አውቶማቲክ)', 'Rent Start Date': 'የኪራይ መጀመሪያ ቀን',
+        'Contract End Date': 'የውል መጨረሻ ቀን', 'Previous Debt': 'የቀድሞ ዕዳ', 'Previous Debt (months)': 'የቀድሞ ዕዳ (ወራት)',
+        'Previous Debt Paid': 'የተከፈለ የቀድሞ ዕዳ', 'e.g. Abebe Kebede': 'ለምሳሌ አበበ ከበደ', 'Shop, office, ...': 'ሱቅ፣ ቢሮ፣ ...',
+        'Enter a name': 'ስም ያስገቡ', 'Tenant registered': 'ተከራይ ተመዝግቧል', 'Delete this record?': 'ይህ መዝገብ ይሰረዝ?',
+        'Name': 'ስም', 'Reason': 'ምክንያት', 'Price/m²': 'ዋጋ/ካሬ', 'Monthly Rent': 'ወርሃዊ ኪራይ', 'Rent Start': 'የኪራይ መጀመሪያ',
+        'Rent End': 'የኪራይ መጨረሻ', 'Prev. Debt Months': 'የቀድሞ ዕዳ ወራት', 'Prev. Debt Paid': 'የተከፈለ የቀድሞ ዕዳ',
+        'Edit Payment': 'ክፍያ አስተካክል', 'Payment Details': 'የክፍያ ዝርዝር', 'Tenant': 'ተከራይ', 'Payment Method': 'የክፍያ ዘዴ',
+        'Status': 'ሁኔታ', 'Receipt No.': 'የደረሰኝ ቁጥር', 'CPV No.': 'CPV ቁጥር', 'Due Date': 'የሚከፈልበት ቀን', 'Date Paid': 'የተከፈለበት ቀን',
+        'Months Paid': 'የተከፈሉ ወራት', 'Year': 'ዓመት', 'Year (EC)': 'ዓመት (ዓ.ም)', 'No month selected': 'ወር አልተመረጠም',
+        'Total Payment (Rent × Months)': 'ጠቅላላ ክፍያ (ኪራይ × ወራት)', 'Penalty (automatic)': 'ቅጣት (አውቶማቲክ)',
+        'Penalty Payment': 'የቅጣት ክፍያ', 'Penalty Amount Paid': 'የተከፈለ ቅጣት', 'Penalty Payment Method': 'የቅጣት ክፍያ ዘዴ',
+        'Penalty Receipt No.': 'የቅጣት ደረሰኝ ቁጥር', 'Select a tenant': 'ተከራይ ይምረጡ', 'Select at least one month': 'ቢያንስ አንድ ወር ይምረጡ',
+        'Enter the payment receipt number': 'የክፍያ ደረሰኝ ቁጥር ያስገቡ', 'Enter the receipt number for the penalty payment': 'የቅጣት ክፍያ ደረሰኝ ቁጥር ያስገቡ',
+        'Payment registered': 'ክፍያ ተመዝግቧል', 'Method': 'ዘዴ', 'Months': 'ወራት', 'Count': 'ብዛት', 'Receipt': 'ደረሰኝ', 'Due': 'የሚከፈልበት',
+        'Paid On': 'የተከፈለበት', 'Total': 'ጠቅላላ', 'Penalty': 'ቅጣት', 'Penalty Paid': 'የተከፈለ ቅጣት', 'Penalty Method': 'የቅጣት ዘዴ',
+        'Penalty Receipt': 'የቅጣት ደረሰኝ', 'Sum': 'ድምር', 'Tenant Debts': 'የተከራዮች ዕዳ', 'Unpaid Months': 'ያልተከፈሉ ወራት',
+        'Monthly Debt': 'ወርሃዊ ዕዳ', 'Prev. Debt Remaining': 'የቀረ የቀድሞ ዕዳ', 'Total Debt': 'ጠቅላላ ዕዳ', 'Penalty Remaining': 'የቀረ ቅጣት',
+        'Grand Total': 'አጠቃላይ ድምር', 'Quarterly Report': 'የሩብ ዓመት ሪፖርት', 'Show': 'አሳይ', 'Months Unpaid': 'ያልተከፈሉ ወራት',
+        'Summary': 'ማጠቃለያ', 'Group': 'ቡድን', 'All Tenants': 'ሁሉም ተከራዮች', 'Total Tenants': 'ጠቅላላ ተከራዮች',
+        'Paid tenants': 'የከፈሉ', 'Unpaid tenants': 'ያልከፈሉ', 'Paid Amount': 'የተከፈለ መጠን', 'Unpaid Amount': 'ያልተከፈለ መጠን',
+        'Tenants by Gender and Agreement': 'ተከራዮች በጾታና በውል', 'Paid vs Unpaid Tenants': 'የከፈሉና ያልከፈሉ ተከራዮች',
+        'Paid = no unpaid month in the selected months.': 'የከፈለ = በተመረጡት ወራት ያልተከፈለ ወር የሌለው።',
+        'Edit User': 'ተጠቃሚ አስተካክል', 'Staff Information': 'የሠራተኛ መረጃ', 'Role': 'ሚና', 'Email (optional)': 'ኢሜል (አማራጭ)', 'Email': 'ኢሜል',
+        'Code': 'ኮድ', 'New Password (leave blank to keep)': 'አዲስ ፓስዎርድ (ባዶ ከሆነ አይቀየርም)',
+        'The code (ARDORS01, ARDORS02 …) is generated automatically. Default password is 1234 (minimum 4 characters).': 'ኮዱ (ARDORS01፣ ARDORS02 …) በራሱ ይፈጠራል። ነባሪ ፓስዎርድ 1234 ነው (ቢያንስ 4 ፊደል)።',
+        'Full name': 'ሙሉ ስም', 'Password must be at least 4 characters': 'ፓስዎርድ ቢያንስ 4 ፊደል መሆን አለበት',
+        'Enter a valid email or leave it empty': 'ትክክለኛ ኢሜል ያስገቡ ወይም ባዶ ይተዉ', 'User registered': 'ተጠቃሚ ተመዝግቧል',
+        'Penalty Settings': 'የቅጣት ቅንብር', 'Calendar': 'ቀን መቁጠሪያ', 'Penalty Type': 'የቅጣት አይነት', 'Value (% or number)': 'ዋጋ (% ወይም ቁጥር)',
+        'Grace days': 'የዕፎይታ ቀናት', 'Calendar: GC = Gregorian · EC = Ethiopian (only the dates change)': 'ቀን መቁጠሪያ፦ GC = ግሪጎሪያን · EC = ኢትዮጵያዊ (ቀኖች ብቻ ይቀየራሉ)',
+        'percent: total × % × days late | fixed: one-time fixed amount': 'መቶኛ፦ ጠቅላላ × % × የዘገየባቸው ቀናት | ቋሚ፦ አንድ ጊዜ የሚከፈል ቋሚ መጠን',
+        'Settings saved': 'ቅንብር ተቀምጧል', 'User Roles': 'የተጠቃሚ ሚናዎች', 'Add New Role': 'አዲስ ሚና ጨምር', 'Add Role': 'ሚና ጨምር',
+        'e.g. Accountant': 'ለምሳሌ ሒሳብ ሹም', 'Enter a role name': 'የሚናውን ስም ያስገቡ', 'This role already exists': 'ይህ ሚና አስቀድሞ አለ',
+        'This role is used by a user and cannot be removed': 'ይህ ሚና በተጠቃሚ ተይዟል፤ ሊሰረዝ አይችልም', 'Remove role': 'ሚናውን ሰርዝ', 'Role added': 'ሚና ተጨምሯል',
+        'Role Permissions': 'የሚና ፈቃዶች', 'Select Role': 'ሚና ይምረጡ', 'Tab': 'ታብ', 'Permissions saved': 'ፈቃዶች ተቀምጠዋል',
+        'Tick View to show a tab. Add / Edit / Delete need View. A tab with nothing ticked stays hidden. Super Admin always has full access.': 'ታብ እንዲታይ "ማየት" ይምረጡ። መመዝገብ / ማስተካከል / መሰረዝ "ማየት" ይፈልጋሉ። ምንም ያልተመረጠ ታብ አይታይም። ሱፐር አድሚን ሁልጊዜ ሙሉ መብት አለው።',
+        'You have no access. Please contact the Super Admin.': 'ምንም መዳረሻ የሎትም። እባክዎ ሱፐር አድሚኑን ያነጋግሩ።',
+        'Code (ARDORS01)': 'ኮድ (ARDORS01)', 'Password (min 4)': 'ፓስዎርድ (ቢያንስ 4)', 'Confirm password': 'ፓስዎርድ አረጋግጥ', '← Back': '← ተመለስ',
+        'Passwords do not match': 'ፓስዎርዶቹ አይመሳሰሉም', 'Your account has been created. Log in with your Code and Password.': 'አካውንትዎ ተፈጥሯል። በኮድዎና በፓስዎርድዎ ይግቡ።',
+        'Registered email': 'የተመዘገበ ኢሜል', 'Send code to my email': 'ኮዱን ወደ ኢሜሌ ላክ', 'Verification code (6 digits)': 'የማረጋገጫ ኮድ (6 ቁጥር)',
+        'New password (min 4)': 'አዲስ ፓስዎርድ (ቢያንስ 4)', 'Confirm new password': 'አዲስ ፓስዎርድ አረጋግጥ', 'Reset password': 'ፓስዎርድ ቀይር',
+        'If the code and email are correct, a verification code has been sent to your email (check Spam too).': 'ኮዱና ኢሜሉ ትክክል ከሆኑ የማረጋገጫ ኮድ ወደ ኢሜልዎ ተልኳል (Spam ንም ይመልከቱ)።',
+        'Password has been changed. Log in now.': 'ፓስዎርድ ተቀይሯል። አሁን ይግቡ።', 'Session expired after 5 minutes of inactivity.': 'ለ5 ደቂቃ ስራ ስላልሰሩ ክፍለ ጊዜው አብቅቷል።',
+        'Cannot reach the server. Check API_URL and your internet connection.': 'ሰርቨሩን ማግኘት አልተቻለም። API_URL እና ኢንተርኔትዎን ያረጋግጡ።',
+        'Incorrect username or password': 'የተጠቃሚ ስም ወይም ፓስዎርድ ትክክል አይደለም', 'Code or Role is incorrect': 'ኮዱ ወይም ሚናው ትክክል አይደለም',
+        'This account is already active. Use Forgot password.': 'ይህ አካውንት አስቀድሞ ንቁ ነው። "ፓስዎርድ ረሳሁ" ይጠቀሙ።',
+        'Verification code is incorrect or has expired': 'የማረጋገጫ ኮዱ ትክክል አይደለም ወይም ጊዜው አልፏል', 'User not found': 'ተጠቃሚው አልተገኘም',
+        'Permission denied': 'ፈቃድ የለዎትም', 'Super Admin only': 'ለሱፐር አድሚን ብቻ', 'Enter a valid Email': 'ትክክለኛ ኢሜል ያስገቡ',
+        'Too many attempts. Please try again in 15 minutes.': 'ብዙ ሙከራ ተደርጓል። ከ15 ደቂቃ በኋላ ይሞክሩ።',
+        'Enter Role, Code and a Password of at least 4 characters': 'ሚና፣ ኮድ እና ቢያንስ 4 ፊደል ያለው ፓስዎርድ ያስገቡ'
+    };
+    const L = s => (LANG == 'am' && AM[s]) || s;
+    const EM_EN = ['Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit', 'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'];
+    const EM_AM = ['መስከረም', 'ጥቅምት', 'ኅዳር', 'ታኅሣሥ', 'ጥር', 'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜ'];
+    const GM_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const GM_AM = ['ጃንዋሪ', 'ፌብሩዋሪ', 'ማርች', 'ኤፕሪል', 'ሜይ', 'ጁን', 'ጁላይ', 'ኦገስት', 'ሴፕቴምበር', 'ኦክቶበር', 'ኖቬምበር', 'ዲሴምበር'];
+    const ems = () => LANG == 'am' ? EM_AM : EM_EN;
+    const gms = () => LANG == 'am' ? GM_AM : GM_EN;
+    const emn = i => ems()[i];
+    let LPV = '';
+    function setLang(l) {
+        LANG = l;
+        try { localStorage.setItem('lang', l); } catch (e) { }
+        applyLang();
+        if (LPV == 'create') lpCreate();
+        else if (LPV == 'forgot') lpForgot();
+    }
+    function applyLang() {
+        document.querySelectorAll('[data-t]').forEach(e => { e.textContent = L(e.dataset.t); });
+        document.querySelectorAll('[data-p]').forEach(e => { e.placeholder = L(e.dataset.p); });
+        document.querySelectorAll('.lang-sw').forEach(e => {
+            e.innerHTML = `<button class="${LANG == 'am' ? 'on' : ''}" onclick="setLang('am')">አማ</button><button class="${LANG == 'en' ? 'on' : ''}" onclick="setLang('en')">EN</button>`;
+        });
+        document.title = L('ARDO Rent Management System');
+        document.documentElement.lang = LANG;
+        if (T) render();
+    }
+
+    // ---- Permissions (set per role by the Super Admin; stored in Settings) ----
+    const pm = (tab, a) => SA() || ((ME.perms || {})[tab] || '').split(',').includes(a);
+    const canA = k => k == 't' ? pm('reg', 'add') : pm('preg', 'add');
+    const canE = k => k == 't' ? pm('reg', 'edit') || pm('list', 'edit') : pm('preg', 'edit') || pm('plist', 'edit');
+    const canD = k => k == 't' ? pm('reg', 'delete') || pm('list', 'delete') : pm('preg', 'delete') || pm('plist', 'delete');
+
     // ---- Navigation: main tabs + sub tabs ----
     const SUB = { tenants: 'reg', users: 'reg' };
     const EDIT = { t: null, p: null, u: null };
@@ -669,17 +795,21 @@
         set: { main: vSet }
     };
     const clearEdit = () => { EDIT.t = EDIT.p = EDIT.u = null; };
+    const noAccess = () => `<div class="card center">${L('You have no access. Please contact the Super Admin.')}</div>`;
     function render() {
-        const tabs = [['tenants', 'Tenants']];
+        const tabs = [];
+        if (pm('tenants', 'view')) tabs.push(['tenants', 'Tenants']);
         if (SA()) tabs.push(['users', 'Users']);
-        tabs.push(['report', 'Report']);
+        if (pm('report', 'view')) tabs.push(['report', 'Report']);
         if (SA()) tabs.push(['set', 'Settings']);
-        if (!tabs.some(t => t[0] == tab)) tab = 'tenants';
-        $('nav').innerHTML = tabs.map(t => `<button class="${t[0] == tab ? 'on' : ''}" onclick="tab='${t[0]}';clearEdit();render()">${t[1]}</button>`).join('');
-        const subs = (SUBS[tab] || []).filter(s => can('add') || can('edit') || !['reg', 'preg'].includes(s[0]));
+        $('nav').innerHTML = tabs.map(t => `<button class="${t[0] == tab ? 'on' : ''}" onclick="tab='${t[0]}';clearEdit();render()">${L(t[1])}</button>`).join('');
+        if (!tabs.length) { $('main').innerHTML = noAccess(); return; }
+        if (!tabs.some(t => t[0] == tab)) tab = tabs[0][0];
+        const subs = (SUBS[tab] || []).filter(s => tab == 'users' || pm(s[0], 'view') || (EDIT.t && s[0] == 'reg') || (EDIT.p && s[0] == 'preg'));
+        if (SUBS[tab] && !subs.length) { $('main').innerHTML = noAccess(); return; }
         if (subs.length && !subs.some(s => s[0] == SUB[tab])) SUB[tab] = subs[0][0];
         const sub = subs.length
-            ? `<nav class="sub">${subs.map(s => `<button class="${s[0] == SUB[tab] ? 'on' : ''}" onclick="clearEdit();SUB.${tab}='${s[0]}';render()">${s[1]}</button>`).join('')}</nav>`
+            ? `<nav class="sub">${subs.map(s => `<button class="${s[0] == SUB[tab] ? 'on' : ''}" onclick="clearEdit();SUB.${tab}='${s[0]}';render()">${L(s[1])}</button>`).join('')}</nav>`
             : '';
         $('main').innerHTML = sub + VIEWS[tab][SUB[tab] || 'main']();
         if (tab == 'tenants' && SUB.tenants == 'preg' && !EDIT.p) pCalc();
@@ -691,32 +821,33 @@
         else SUB.tenants = k == 't' ? 'reg' : 'preg';
         render();
     }
-    const btns = (k, id) => (can('edit') ? `<button class="s" onclick="editRec('${k}','${id}')">Edit</button>` : '') + (can('delete') ? `<button class="s d" onclick="rm('${k}','${id}')">Del</button>` : '');
+    const btns = (k, id) => (canE(k) ? `<button class="s" onclick="editRec('${k}','${id}')">${L('Edit')}</button>` : '') + (canD(k) ? `<button class="s d" onclick="rm('${k}','${id}')">${L('Del')}</button>` : '');
     function toast(m) {
         const d = document.createElement('div');
         d.className = 'toast';
-        d.textContent = m;
+        d.textContent = L(m);
         document.body.appendChild(d);
         setTimeout(() => d.remove(), 2200);
     }
-    const phead = t => `<div class="ph"><b>ARDO Rent Management System</b> — ${t} — ${dt(todayISO())}</div>`;
-    const bar = t => `<div class="bar"><h2>${t}</h2><button class="pbtn" onclick="window.print()">🖨 Print</button></div>${phead(t)}`;
-    const actions = (save, cancel) => `<div class="actions"><button onclick="${save}">Save</button>${cancel ? `<button class="xbtn" onclick="${cancel}">Cancel</button>` : ''}</div>`;
+    const phead = t => `<div class="ph"><b>${L('ARDO Rent Management System')}</b> — ${t} — ${dt(todayISO())}</div>`;
+    const bar = t => `<div class="bar"><h2>${L(t)}</h2><button class="pbtn" onclick="window.print()">🖨 ${L('Print')}</button></div>${phead(L(t))}`;
+    const actions = (save, cancel, ok = true) => ok
+        ? `<div class="actions"><button onclick="${save}">${L('Submit')}</button>${cancel ? `<button class="xbtn" onclick="${cancel}">${L('Cancel')}</button>` : ''}</div>`
+        : `<p class="hint center">${L('View only')}</p>`;
     function field(id, l, v = '', type = 'text', opts, ro, ph = '') {
         const ctl = opts
-            ? `<select id="${id}">${opts.map(o => `<option ${o == v ? 'selected' : ''}>${o}</option>`).join('')}</select>`
-            : `<input id="${id}" type="${type}" value="${esc(v)}" placeholder="${esc(ph)}" ${ro ? 'readonly' : ''}>`;
-        return `<div class="fld"><label>${l}</label>${ctl}</div>`;
+            ? `<select id="${id}">${opts.map(o => `<option value="${esc(o)}" ${o == v ? 'selected' : ''}>${esc(L(o))}</option>`).join('')}</select>`
+            : `<input id="${id}" type="${type}" value="${esc(v)}" placeholder="${esc(L(ph))}" ${ro ? 'readonly' : ''}>`;
+        return `<div class="fld"><label>${L(l)}</label>${ctl}</div>`;
     }
 
     // ---- Months (selectable chips) ----
-    const GM = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const mnames = () => EC() ? EM : GM;
+    const mnames = () => EC() ? ems() : gms();
     const mkey = (y, m) => `${EC() ? 'E' : 'G'}:${y}-${pad(m)}`;
     const mlabel = e => {
         const [t, ym] = e.split(':');
         const [y, m] = ym.split('-');
-        return (t == 'E' ? EM : GM)[m - 1] + ' ' + y;
+        return (t == 'E' ? ems() : gms())[m - 1] + ' ' + y;
     };
     // month entry -> [year, month] in the calendar currently in use
     const mp = e => {
@@ -727,7 +858,7 @@
     };
     const MSEL = new Set();
     let MY = 0;
-    const msum = () => MSEL.size ? [...MSEL].sort().map(mlabel).join(', ') + ' (' + MSEL.size + ')' : 'No month selected';
+    const msum = () => MSEL.size ? [...MSEL].sort().map(mlabel).join(', ') + ' (' + MSEL.size + ')' : L('No month selected');
     function monthChips() {
         return mnames().map((n, i) => {
             const k = mkey(MY, i + 1);
@@ -750,29 +881,29 @@
         const t = D.Tenants.find(x => x.id == EDIT.t) || {};
         return `
             <div class="card form">
-                <h2>${t.id ? 'Edit Tenant' : 'Register Tenant'}</h2>
-                <h3 class="sec">Personal Information</h3>
+                <h2>${L(t.id ? 'Edit Tenant' : 'Register Tenant')}</h2>
+                <h3 class="sec">${L('Personal Information')}</h3>
                 <div class="fg">
                     ${field('f_name', 'Full Name', t.name, 'text', null, 0, 'e.g. Abebe Kebede')}
                     ${field('f_gender', 'Gender', t.gender, '', GEN)}
                     ${field('f_phone', 'Phone', t.phone, 'tel', null, 0, '09...')}
                 </div>
-                <h3 class="sec">Rent Details</h3>
+                <h3 class="sec">${L('Rent Details')}</h3>
                 <div class="fg" oninput="tCalc()">
                     ${field('f_reason', 'Reason for Renting', t.reason, 'text', null, 0, 'Shop, office, ...')}
                     ${field('f_contract', 'Agreement', t.contract, '', CON)}
                     ${field('f_area', 'Area (m²)', t.area, 'number')}
                     ${field('f_pps', 'Price per m²', t.pricePerSqm, 'number')}
                     ${field('f_monthly', 'Monthly Rent (auto)', t.monthly, 'number', null, 1)}
-                    ${dfield('f_start', 'Rent Start Date', t.startDate)}
-                    ${dfield('f_end', 'Contract End Date', t.endDate)}
+                    ${dfield('f_start', L('Rent Start Date'), t.startDate)}
+                    ${dfield('f_end', L('Contract End Date'), t.endDate)}
                 </div>
-                <h3 class="sec">Previous Debt</h3>
+                <h3 class="sec">${L('Previous Debt')}</h3>
                 <div class="fg">
                     ${field('f_dm', 'Previous Debt (months)', t.debtMonths || 0, 'number')}
                     ${field('f_dp', 'Previous Debt Paid', t.debtPaid || 0, 'number')}
                 </div>
-                ${actions(`tSave('${t.id || ''}')`, t.id ? "clearEdit();SUB.tenants='list';render()" : '')}
+                ${actions(`tSave('${t.id || ''}')`, t.id ? "clearEdit();SUB.tenants='list';render()" : '', t.id ? canE('t') : canA('t'))}
             </div>`;
     }
     const tCalc = () => { $('f_monthly').value = N(val('f_area')) * N(val('f_pps')); };
@@ -782,7 +913,7 @@
             area: val('f_area'), pricePerSqm: val('f_pps'), monthly: N(val('f_area')) * N(val('f_pps')),
             startDate: dval('f_start'), endDate: dval('f_end'), contract: val('f_contract'), debtMonths: val('f_dm'), debtPaid: val('f_dp')
         };
-        if (!o.name) return alert('Enter a name');
+        if (!o.name) return alert(L('Enter a name'));
         await run('saveRow', T, 'Tenants', o);
         clearEdit();
         if (id) SUB.tenants = 'list';
@@ -794,7 +925,8 @@
     function vTenantList() {
         const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['phone', 'Phone'], ['reason', 'Reason'], ['area', 'Area (m²)'], ['pricePerSqm', 'Price/m²'], ['monthly', 'Monthly Rent'], ['startDate', 'Rent Start'], ['endDate', 'Rent End'], ['contract', 'Agreement', '', CON], ['debtMonths', 'Prev. Debt Months'], ['debtPaid', 'Prev. Debt Paid']];
         const data = D.Tenants.map(t => ({ ...t, monthly: fmt(t.monthly), startDate: dt(t.startDate), endDate: dt(t.endDate) }));
-        return `<div class="card">${bar('Tenants List')}${tbl('tenants', cols, data, r => btns('t', r.id))}</div>`;
+        const act = canE('t') || canD('t') ? r => btns('t', r.id) : null;
+        return `<div class="card">${bar('Tenants List')}${tbl('tenants', cols, data, act)}</div>`;
     }
 
     // ---- Payments: register ----
@@ -805,32 +937,32 @@
         MY = MSEL.size ? mp([...MSEL][0])[0] : parts(todayISO())[0];
         return `
             <div class="card form" oninput="if(event.target.closest('#p_t,#p_s,#p_d,#p_p'))pCalc()">
-                <h2>${p.id ? 'Edit Payment' : 'Register Payment'}</h2>
-                <h3 class="sec">Payment Details</h3>
+                <h2>${L(p.id ? 'Edit Payment' : 'Register Payment')}</h2>
+                <h3 class="sec">${L('Payment Details')}</h3>
                 <div class="fg">
-                    <div class="fld"><label>Tenant</label><select id="p_t">${D.Tenants.map(t => `<option value="${t.id}" ${t.id == p.tenantId ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div>
+                    <div class="fld"><label>${L('Tenant')}</label><select id="p_t">${D.Tenants.map(t => `<option value="${t.id}" ${t.id == p.tenantId ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div>
                     ${field('p_m', 'Payment Method', p.method, '', ['Bank', 'Cash'])}
                     ${field('p_s', 'Status', p.status, '', ['Paid', 'Unpaid'])}
                     ${field('p_r', 'Receipt No.', p.receipt)}
                     ${field('p_c', 'CPV No.', p.cpv)}
-                    ${dfield('p_d', 'Due Date', p.dueDate)}
-                    ${dfield('p_p', 'Date Paid', p.date)}
+                    ${dfield('p_d', L('Due Date'), p.dueDate)}
+                    ${dfield('p_p', L('Date Paid'), p.date)}
                 </div>
-                <h3 class="sec">Months Paid</h3>
-                <div class="fg"><div class="fld"><label>Year${EC() ? ' (EC)' : ''}</label><input type="number" id="m_y" value="${MY}" onchange="setMY(this.value)"></div></div>
+                <h3 class="sec">${L('Months Paid')}</h3>
+                <div class="fg"><div class="fld"><label>${L(EC() ? 'Year (EC)' : 'Year')}</label><input type="number" id="m_y" value="${MY}" onchange="setMY(this.value)"></div></div>
                 <div id="m_chips" class="chips">${monthChips()}</div>
                 <p class="msum" id="m_sum">${msum()}</p>
                 <div class="fg">
                     ${field('p_tot', 'Total Payment (Rent × Months)', p.total || '', 'number', null, 1)}
                     ${field('p_pen', 'Penalty (automatic)', p.penalty || 0, 'number', null, 1)}
                 </div>
-                <h3 class="sec">Penalty Payment</h3>
+                <h3 class="sec">${L('Penalty Payment')}</h3>
                 <div class="fg">
                     ${field('p_pp', 'Penalty Amount Paid', p.penaltyPaid || 0, 'number')}
                     ${field('p_pm', 'Penalty Payment Method', p.penaltyMethod, '', ['Bank', 'Cash'])}
                     ${field('p_pr', 'Penalty Receipt No.', p.penaltyReceipt)}
                 </div>
-                ${actions(`pSave('${p.id || ''}')`, p.id ? "clearEdit();SUB.tenants='plist';render()" : '')}
+                ${actions(`pSave('${p.id || ''}')`, p.id ? "clearEdit();SUB.tenants='plist';render()" : '', p.id ? canE('p') : canA('p'))}
             </div>`;
     }
     function pCalc() {
@@ -842,10 +974,10 @@
     }
     async function pSave(id) {
         const t = D.Tenants.find(x => x.id == val('p_t'));
-        if (!t) return alert('Select a tenant');
-        if (!MSEL.size) return alert('Select at least one month');
-        if (val('p_s') == 'Paid' && !val('p_r')) return alert('Enter the payment receipt number');
-        if (N(val('p_pp')) > 0 && !val('p_pr')) return alert('Enter the receipt number for the penalty payment');
+        if (!t) return alert(L('Select a tenant'));
+        if (!MSEL.size) return alert(L('Select at least one month'));
+        if (val('p_s') == 'Paid' && !val('p_r')) return alert(L('Enter the payment receipt number'));
+        if (N(val('p_pp')) > 0 && !val('p_pr')) return alert(L('Enter the receipt number for the penalty payment'));
         await run('saveRow', T, 'Payments', {
             id, tenantId: t.id, method: val('p_m'), status: val('p_s'), months: MSEL.size, monthList: [...MSEL].sort().join(','),
             receipt: val('p_r'), cpv: val('p_c'), dueDate: dval('p_d'), date: dval('p_p'), total: val('p_tot'), penalty: val('p_pen'),
@@ -866,8 +998,9 @@
             return { ...p, tenant: tn(p.tenantId), gender: t.gender, contract: t.contract, monthsTxt, dueDate: dt(p.dueDate), date: dt(p.date) };
         });
         const sum = (sh, k) => fmt(sh.reduce((a, r) => a + N(r[k]), 0));
-        const foot = sh => `<tr><td colspan="11">Sum</td><td>${sum(sh, 'total')}</td><td>${sum(sh, 'penalty')}</td><td>${sum(sh, 'penaltyPaid')}</td><td></td><td></td><td class="act"></td></tr>`;
-        return `<div class="card">${bar('Payments List')}${tbl('pay', cols, data, r => btns('p', r.id), foot)}</div>`;
+        const foot = sh => `<tr><td colspan="11">${L('Sum')}</td><td>${sum(sh, 'total')}</td><td>${sum(sh, 'penalty')}</td><td>${sum(sh, 'penaltyPaid')}</td><td></td><td></td><td class="act"></td></tr>`;
+        const act = canE('p') || canD('p') ? r => btns('p', r.id) : null;
+        return `<div class="card">${bar('Payments List')}${tbl('pay', cols, data, act, foot)}</div>`;
     }
 
     // ---- Debts ----
@@ -880,11 +1013,21 @@
         return `<div class="card">${bar('Tenant Debts')}${tbl('debt', cols, data)}</div>`;
     }
 
-    // ---- Report (quarterly, shown by months) ----
+    // ---- Report (quarterly by months, with summary and graphs) ----
     function qLabel(q) {
         const n = mnames();
         const a = (q - 1) * 3;
         return n[a] + ' – ' + n[q == 4 && EC() ? 12 : a + 2];
+    }
+    // horizontal bar chart: rows = [{l, v:[...]}], series = [[name, color], ...]
+    function hbars(rows, series) {
+        const max = Math.max(1, ...rows.flatMap(r => r.v));
+        const legend = series.length > 1 ? `<div class="legend">${series.map(s => `<span><i style="background:${s[1]}"></i>${L(s[0])}</span>`).join('')}</div>` : '';
+        const body = rows.map(r => `
+            <div class="hb-row"><span class="hb-l">${L(r.l)}</span><div class="hb-bars">
+                ${r.v.map((v, i) => `<div class="hb-line"><div class="hb-bar" style="width:${v ? Math.max(3, v / max * 100) : 0}%;background:${series[i][1]}"></div><span class="hb-v">${v}</span></div>`).join('')}
+            </div></div>`).join('');
+        return `<div class="hbc">${legend}${body}</div>`;
     }
     function vReport() {
         const C = S('calendar') || 'GC';
@@ -927,41 +1070,57 @@
         });
         const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['contract', 'Agreement', '', CON], ['pm', 'Months Paid'], ['paid', 'Paid'], ['um', 'Months Unpaid'], ['unpaid', 'Unpaid', 'bad']];
         const sh = flt('report', cols, data);
+        // summary by gender / agreement: a tenant counts as "paid" when no month is unpaid
+        const grp = f => {
+            const g = sh.filter(f);
+            const paid = g.filter(r => r.um == 0).length;
+            return { n: g.length, p: paid, u: g.length - paid, pa: g.reduce((s, r) => s + r._p, 0), ua: g.reduce((s, r) => s + r._u, 0) };
+        };
+        const defs = [['Male', r => r.gender == 'Male'], ['Female', r => r.gender == 'Female'], ['Other', r => r.gender == 'Other'], ['Contract', r => r.contract == 'Contract'], ['Non-contract', r => r.contract == 'Non-contract'], ['All Tenants', () => true]];
+        const G = defs.map(d => [d[0], grp(d[1])]).filter(g => g[0] != 'Other' || g[1].n);
+        const gRows = G.filter(g => g[0] != 'All Tenants');
+        const all = G[G.length - 1][1];
         const qOpts = [1, 2, 3, 4].map(q => `<option value="${q}" ${F.q == q ? 'selected' : ''}>${qLabel(q)}</option>`).join('');
+        const sumRows = G.map(g => `<tr class="${g[0] == 'All Tenants' ? 'tot' : ''}"><td>${L(g[0])}</td><td>${g[1].n}</td><td>${g[1].p}</td><td class="bad">${g[1].u}</td><td>${fmt(g[1].pa)}</td><td class="bad">${fmt(g[1].ua)}</td></tr>`).join('');
         return `
             <div class="card form">
-                <h2>Quarterly Report</h2>
+                <h2>${L('Quarterly Report')}</h2>
                 <div class="fg">
                     ${field('r_y', EC() ? 'Year (EC)' : 'Year', F.y, 'number')}
-                    <div class="fld"><label>Months</label><select onchange="F.q=+this.value;render()">${qOpts}</select></div>
+                    <div class="fld"><label>${L('Months')}</label><select onchange="F.q=+this.value;render()">${qOpts}</select></div>
                 </div>
-                <div class="actions"><button onclick="F.y=+val('r_y');render()">Show</button></div>
+                <div class="actions"><button onclick="F.y=+val('r_y');render()">${L('Show')}</button></div>
             </div>
             <div class="card">
-                ${bar('Report: ' + qLabel(F.q) + ' ' + F.y)}
+                ${bar(L('Report') + ': ' + qLabel(F.q) + ' ' + F.y)}
                 <div class="grid">
-                    <div class="kpi">Paid<b>${fmt(sh.reduce((s, r) => s + r._p, 0))}</b></div>
-                    <div class="kpi">Unpaid<b class="bad">${fmt(sh.reduce((s, r) => s + r._u, 0))}</b></div>
+                    <div class="kpi">${L('Total Tenants')}<b>${all.n}</b></div>
+                    <div class="kpi">${L('Paid Amount')}<b>${fmt(all.pa)}</b></div>
+                    <div class="kpi">${L('Unpaid Amount')}<b class="bad">${fmt(all.ua)}</b></div>
+                </div>
+                <h3 class="sec">${L('Summary')}</h3>
+                <div class="wrap"><table class="sum">
+                    <tr><th>${L('Group')}</th><th>${L('Total')}</th><th>${L('Paid tenants')}</th><th>${L('Unpaid tenants')}</th><th>${L('Paid Amount')}</th><th>${L('Unpaid Amount')}</th></tr>
+                    ${sumRows}
+                </table></div>
+                <p class="hint">${L('Paid = no unpaid month in the selected months.')}</p>
+                <div class="charts">
+                    <div><h3 class="sec">${L('Tenants by Gender and Agreement')}</h3>${hbars(gRows.map(g => ({ l: g[0], v: [g[1].n] })), [['Tenants', '#2d8fe5']])}</div>
+                    <div><h3 class="sec">${L('Paid vs Unpaid Tenants')}</h3>${hbars(gRows.map(g => ({ l: g[0], v: [g[1].p, g[1].u] })), [['Paid tenants', '#1b7f4b'], ['Unpaid tenants', '#c0392b']])}</div>
                 </div>
                 ${tbl('report', cols, data)}
             </div>`;
     }
 
-    // ---- Users (Super Admin): register + list ----
+    // ---- Users (Super Admin only): register + list ----
     const BASE_ROLES = ['Admin', 'Super Admin'];
     const roles = () => [...new Set([...BASE_ROLES, ...(S('roles') || '').split(',').map(x => x.trim()).filter(Boolean)])];
-    const PERMS = [['view', '👁', 'View', 'See all records'], ['add', '➕', 'Add', 'Register new records'], ['edit', '✏️', 'Edit', 'Change existing records'], ['delete', '🗑', 'Delete', 'Remove records']];
     function vUserForm() {
         const u = D.Users.find(x => x.id == EDIT.u) || {};
-        const pp = u.id ? (u.perms || '').split(',') : ['view'];
-        const permBoxes = PERMS.map(p => `
-            <label class="perm"><input type="checkbox" class="pc" value="${p[0]}" ${pp.includes(p[0]) ? 'checked' : ''}>
-                <span class="pbox"><i>${p[1]}</i><b>${p[2]}</b><small>${p[3]}</small></span>
-            </label>`).join('');
         return `
             <div class="card form">
-                <h2>${u.id ? 'Edit User' : 'Register User'}</h2>
-                <h3 class="sec">Staff Information</h3>
+                <h2>${L(u.id ? 'Edit User' : 'Register User')}</h2>
+                <h3 class="sec">${L('Staff Information')}</h3>
                 <div class="fg">
                     ${field('u_n', 'Full Name', u.name, 'text', null, 0, 'Full name')}
                     ${field('u_g', 'Gender', u.gender, '', GEN)}
@@ -970,53 +1129,100 @@
                     ${u.code ? field('u_c', 'Code', u.code, 'text', null, 1) : ''}
                     ${field('u_p', u.id ? 'New Password (leave blank to keep)' : 'Password', u.id ? '' : '1234', u.id ? 'password' : 'text')}
                 </div>
-                ${u.id ? '' : '<p class="hint">The code (ARDORS01, ARDORS02 …) is generated automatically. Default password is 1234 (minimum 4 characters).</p>'}
-                <h3 class="sec">Permissions</h3>
-                <div class="perms">${permBoxes}</div>
+                ${u.id ? '' : `<p class="hint">${L('The code (ARDORS01, ARDORS02 …) is generated automatically. Default password is 1234 (minimum 4 characters).')}</p>`}
                 ${actions(`uSave('${u.id || ''}')`, u.id ? "clearEdit();SUB.users='list';render()" : '')}
             </div>`;
     }
     async function uSave(id) {
-        const perms = [...document.querySelectorAll('.pc:checked')].map(x => x.value).join(',');
         const pw = val('u_p');
         const em = val('u_e').trim();
-        if (!val('u_n')) return alert('Enter a name');
-        if (pw && pw.length < 4) return alert('Password must be at least 4 characters');
-        if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return alert('Enter a valid email or leave it empty');
-        await run('saveRow', T, 'Users', { id, name: val('u_n'), gender: val('u_g'), role: val('u_r'), email: em, password: pw, perms });
+        if (!val('u_n')) return alert(L('Enter a name'));
+        if (pw && pw.length < 4) return alert(L('Password must be at least 4 characters'));
+        if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return alert(L('Enter a valid email or leave it empty'));
+        await run('saveRow', T, 'Users', { id, name: val('u_n'), gender: val('u_g'), role: val('u_r'), email: em, password: pw, perms: '' });
         clearEdit();
         if (id) SUB.users = 'list';
         else toast('User registered');
         load();
     }
     function vUserList() {
-        const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['role', 'Role', '', roles()], ['code', 'Code'], ['email', 'Email'], ['status', 'Status', '', ['Active', 'Pending']], ['perms', 'Permissions']];
+        const cols = [['name', 'Name'], ['gender', 'Gender', '', GEN], ['role', 'Role', '', roles()], ['code', 'Code'], ['email', 'Email'], ['status', 'Status', '', ['Active', 'Pending']]];
         const data = D.Users.map(u => ({ ...u, status: u.status || 'Active' }));
-        const act = r => `<button class="s" onclick="editRec('u','${r.id}')">Edit</button><button class="s d" onclick="rm('u','${r.id}')">Del</button>`;
+        const act = r => `<button class="s" onclick="editRec('u','${r.id}')">${L('Edit')}</button><button class="s d" onclick="rm('u','${r.id}')">${L('Del')}</button>`;
         return `<div class="card">${bar('Users List')}${tbl('users', cols, data, act)}</div>`;
     }
 
-    // ---- Settings: penalty + user roles ----
-    function vSet() {
-        const chips = roles().map(r => `<span class="rchip">${esc(r)}${BASE_ROLES.includes(r) ? '' : `<a onclick="rmRole('${esc(r)}')">×</a>`}</span>`).join('');
+    // ---- Settings (Super Admin only): penalty, roles, role permissions ----
+    const PTABS = [['tenants', 'Tenants'], ['reg', 'Register Tenant'], ['list', 'Tenants List'], ['preg', 'Register Payment'], ['plist', 'Payments List'], ['debt', 'Debts'], ['report', 'Report']];
+    const PACTS = ['view', 'add', 'edit', 'delete'];
+    const PL = { view: ['View', 'ማየት'], add: ['Add', 'መመዝገብ'], edit: ['Edit', 'ማስተካከል'], delete: ['Delete', 'መሰረዝ'] };
+    let PROLE = '';
+    const allPerms = () => {
+        try { return JSON.parse(S('permissions') || '{}') || {}; } catch (e) { return {}; }
+    };
+    function vPermCard() {
+        const rl = roles().filter(r => r != 'Super Admin');
+        if (!rl.includes(PROLE)) PROLE = rl[0];
+        const cur = allPerms()[PROLE] || {};
+        const head = PACTS.map(a => `<th>${PL[a][LANG == 'am' ? 1 : 0]}</th>`).join('');
+        const body = PTABS.map(t => {
+            const boxes = PACTS.map(a => `<td><input type="checkbox" class="pk" data-tab="${t[0]}" data-a="${a}" ${(cur[t[0]] || '').split(',').includes(a) ? 'checked' : ''} onchange="permTick(this)"></td>`).join('');
+            return `<tr><td class="ptab ${['tenants', 'report'].includes(t[0]) ? '' : 'psub'}">${L(t[1])}</td>${boxes}</tr>`;
+        }).join('');
         return `
             <div class="card form">
-                <h2>Penalty Settings</h2>
+                <h2>${L('Role Permissions')}</h2>
+                <div class="fg"><div class="fld"><label>${L('Select Role')}</label><select onchange="PROLE=this.value;render()">${rl.map(r => `<option value="${esc(r)}" ${r == PROLE ? 'selected' : ''}>${esc(L(r))}</option>`).join('')}</select></div></div>
+                <div class="wrap"><table class="perm-table"><tr><th>${L('Tab')}</th>${head}</tr>${body}</table></div>
+                <p class="hint">${L('Tick View to show a tab. Add / Edit / Delete need View. A tab with nothing ticked stays hidden. Super Admin always has full access.')}</p>
+                ${actions('permSave()')}
+            </div>`;
+    }
+    function permTick(el) {
+        const q = (t, a) => document.querySelector(`.pk[data-tab="${t}"][data-a="${a}"]`);
+        const tab = el.dataset.tab;
+        const a = el.dataset.a;
+        if (el.checked) {
+            q(tab, 'view').checked = true;
+            if (!['tenants', 'report'].includes(tab)) q('tenants', 'view').checked = true;
+        } else if (a == 'view') {
+            PACTS.forEach(x => { q(tab, x).checked = false; });
+            if (tab == 'tenants') PTABS.forEach(t => PACTS.forEach(x => { q(t[0], x).checked = false; }));
+        }
+    }
+    async function permSave() {
+        const o = {};
+        PTABS.forEach(t => {
+            const s = PACTS.filter(a => document.querySelector(`.pk[data-tab="${t[0]}"][data-a="${a}"]`).checked);
+            if (s.length) o[t[0]] = s.join(',');
+        });
+        const all = allPerms();
+        all[PROLE] = o;
+        await run('saveRow', T, 'Settings', { key: 'permissions', value: JSON.stringify(all) });
+        toast('Permissions saved');
+        load();
+    }
+    function vSet() {
+        const chips = roles().map(r => `<span class="rchip">${esc(L(r))}${BASE_ROLES.includes(r) ? '' : `<a onclick="rmRole('${esc(r)}')">×</a>`}</span>`).join('');
+        return `
+            <div class="card form">
+                <h2>${L('Penalty Settings')}</h2>
                 <div class="fg">
                     ${field('s_c', 'Calendar', S('calendar') || 'GC', '', ['GC', 'EC'])}
                     ${field('s_t', 'Penalty Type', S('penaltyType'), '', ['percent', 'fixed'])}
                     ${field('s_v', 'Value (% or number)', S('penaltyValue'), 'number')}
                     ${field('s_g', 'Grace days', S('graceDays'), 'number')}
                 </div>
-                <p class="hint">Calendar: GC = Gregorian · EC = Ethiopian (only the dates change)<br>percent: total × % × days late &nbsp;|&nbsp; fixed: one-time fixed amount</p>
+                <p class="hint">${L('Calendar: GC = Gregorian · EC = Ethiopian (only the dates change)')}<br>${L('percent: total × % × days late | fixed: one-time fixed amount')}</p>
                 ${actions('sSave()')}
             </div>
             <div class="card form">
-                <h2>User Roles</h2>
+                <h2>${L('User Roles')}</h2>
                 <div class="chips">${chips}</div>
                 <div class="fg">${field('s_role', 'Add New Role', '', 'text', null, 0, 'e.g. Accountant')}</div>
-                ${actions('addRole()').replace('>Save<', '>+ Add Role<')}
-            </div>`;
+                <div class="actions"><button onclick="addRole()">+ ${L('Add Role')}</button></div>
+            </div>
+            ${vPermCard()}`;
     }
     async function sSave() {
         await run('saveRow', T, 'Settings', { key: 'calendar', value: val('s_c') });
@@ -1028,31 +1234,37 @@
     }
     async function addRole() {
         const r = val('s_role').replace(/[<>"',]/g, '').trim();
-        if (!r) return alert('Enter a role name');
-        if (roles().some(x => x.toLowerCase() == r.toLowerCase())) return alert('This role already exists');
+        if (!r) return alert(L('Enter a role name'));
+        if (roles().some(x => x.toLowerCase() == r.toLowerCase())) return alert(L('This role already exists'));
         await run('saveRow', T, 'Settings', { key: 'roles', value: [...roles().filter(x => !BASE_ROLES.includes(x)), r].join(',') });
         toast('Role added');
         load();
     }
     async function rmRole(r) {
-        if ((D.Users || []).some(u => u.role == r)) return alert('This role is used by a user and cannot be removed');
-        if (!confirm('Remove role "' + r + '"?')) return;
+        if ((D.Users || []).some(u => u.role == r)) return alert(L('This role is used by a user and cannot be removed'));
+        if (!confirm(L('Remove role') + ' "' + r + '"?')) return;
         await run('saveRow', T, 'Settings', { key: 'roles', value: roles().filter(x => !BASE_ROLES.includes(x) && x != r).join(',') });
         load();
     }
-    async function lpCreate() {
-        let R = BASE_ROLES;
-        try { R = await run('getRoles'); } catch (e) { }
-        lpbox(`<h2>Create account</h2><label>Role</label><select id="c_r">${R.map(r => `<option>${esc(r)}</option>`).join('')}</select>
-            <input id="c_c" placeholder="Code (ARDORS01)"><input id="c_e" type="email" placeholder="Email (optional)"><input id="c_p" type="password" placeholder="Password (min 4)"><input id="c_p2" type="password" placeholder="Confirm password">
-            <button onclick="doCreate()">Create account</button><button class="xbtn" style="width:100%" onclick="lpBack()">← Back</button><p id="lm2" class="bad"></p>`);
-    }
-    // ---- Login page: Create account / Forgot password ----
-    const lpbox = h => {
+
+    // ---- Login page: Create account / Forgot password (open instantly, no loading) ----
+    let PR = BASE_ROLES;
+    fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: 'getRoles', args: [] }) })
+        .then(r => r.json())
+        .then(r => {
+            if (r.ok && Array.isArray(r.data)) {
+                PR = r.data;
+                if ($('c_r')) $('c_r').innerHTML = PR.map(x => `<option value="${esc(x)}">${esc(L(x))}</option>`).join('');
+            }
+        })
+        .catch(() => { });
+    const lpbox = (h, v) => {
+        LPV = v;
         $('lg').classList.add('hide');
         $('lp').innerHTML = h;
     };
     function lpBack() {
+        LPV = '';
         $('lp').innerHTML = '';
         $('lg').classList.remove('hide');
         $('lm').textContent = '';
@@ -1060,27 +1272,28 @@
     const msg2 = (t, ok) => {
         const e = $('lm2');
         e.style.color = ok ? 'var(--g2)' : '';
-        e.textContent = t;
+        e.textContent = L(t);
     };
+    function lpCreate() {
+        lpbox(`<h2>${L('Create account')}</h2><label>${L('Role')}</label><select id="c_r">${PR.map(r => `<option value="${esc(r)}">${esc(L(r))}</option>`).join('')}</select>
+            <input id="c_c" placeholder="${L('Code (ARDORS01)')}"><input id="c_e" type="email" placeholder="${L('Email (optional)')}"><input id="c_p" type="password" placeholder="${L('Password (min 4)')}"><input id="c_p2" type="password" placeholder="${L('Confirm password')}">
+            <button onclick="doCreate()">${L('Create account')}</button><button class="xbtn" style="width:100%" onclick="lpBack()">${L('← Back')}</button><p id="lm2" class="bad"></p>`, 'create');
+    }
     async function doCreate() {
-        if ($('c_p').value != $('c_p2').value) {
-            return msg2('Passwords do not match');
-        }
+        if ($('c_p').value != $('c_p2').value) return msg2('Passwords do not match');
         const r = await run('createAccount', $('c_r').value, $('c_c').value, $('c_e').value, $('c_p').value);
-        if (!r.ok) {
-            return msg2(r.msg);
-        }
+        if (!r.ok) return msg2(r.msg);
         const c = $('c_c').value.trim().toUpperCase();
         lpBack();
         $('u').value = c;
         $('lm').style.color = 'var(--g2)';
-        $('lm').textContent = 'Your account has been created. Log in with your Code and Password.';
+        $('lm').textContent = L('Your account has been created. Log in with your Code and Password.');
     }
     function lpForgot() {
-        lpbox(`<h2>Forgot password</h2><input id="f_c" placeholder="Code (ARDORS01)"><input id="f_e" type="email" placeholder="Registered email">
-      <button onclick="doFSend()">Send code to my email</button>
-      <div id="f2" class="hide"><input id="f_o" placeholder="Verification code (6 digits)"><input id="f_p" type="password" placeholder="New password (min 4)"><input id="f_p2" type="password" placeholder="Confirm new password"><button onclick="doFReset()">Reset password</button></div>
-      <button class="xbtn" style="width:100%" onclick="lpBack()">← Back</button><p id="lm2" class="bad"></p>`);
+        lpbox(`<h2>${L('Forgot password')}</h2><input id="f_c" placeholder="${L('Code (ARDORS01)')}"><input id="f_e" type="email" placeholder="${L('Registered email')}">
+            <button onclick="doFSend()">${L('Send code to my email')}</button>
+            <div id="f2" class="hide"><input id="f_o" placeholder="${L('Verification code (6 digits)')}"><input id="f_p" type="password" placeholder="${L('New password (min 4)')}"><input id="f_p2" type="password" placeholder="${L('Confirm new password')}"><button onclick="doFReset()">${L('Reset password')}</button></div>
+            <button class="xbtn" style="width:100%" onclick="lpBack()">${L('← Back')}</button><p id="lm2" class="bad"></p>`, 'forgot');
     }
     async function doFSend() {
         await run('forgotRequest', $('f_c').value, $('f_e').value);
@@ -1088,19 +1301,17 @@
         msg2('If the code and email are correct, a verification code has been sent to your email (check Spam too).', 1);
     }
     async function doFReset() {
-        if ($('f_p').value != $('f_p2').value) {
-            return msg2('Passwords do not match');
-        }
+        if ($('f_p').value != $('f_p2').value) return msg2('Passwords do not match');
         const r = await run('forgotReset', $('f_c').value, $('f_o').value, $('f_p').value);
-        if (!r.ok) {
-            return msg2(r.msg);
-        }
+        if (!r.ok) return msg2(r.msg);
         const c = $('f_c').value.trim().toUpperCase();
         lpBack();
         $('u').value = c;
         $('lm').style.color = 'var(--g2)';
-        $('lm').textContent = 'Password has been changed. Log in now.';
+        $('lm').textContent = L('Password has been changed. Log in now.');
     }
+    applyLang();
+
     </script>
 </body>
 
